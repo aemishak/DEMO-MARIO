@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Personal Risk Quest 3D - Risk World</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;color:#fff;background:#0b2a5b;user-select:none;-webkit-user-select:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hidden{display:none!important}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;z-index:30;background:rgba(5,25,60,.45);overflow:auto}
+#modal{z-index:40}
+.card{background:linear-gradient(180deg,#10408a,#0a2a5e);border:2px solid #3da5ff;border-radius:20px;padding:18px;max-width:640px;width:100%;max-height:94vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.55)}
+.card.wide{max-width:900px}
+h1{font-size:2.3rem;line-height:1;text-align:center;color:#ffd23f;text-shadow:0 3px 0 #c2570c,0 6px 12px rgba(0,0,0,.4)}
+h1 span{color:#5cc8ff;text-shadow:0 3px 0 #1a5fb4}
+.tag{text-align:center;margin:8px 0 14px;font-style:italic;color:#bfe3ff}
+.btn{border:0;border-radius:14px;padding:12px 18px;font:inherit;font-weight:800;font-size:1rem;color:#fff;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.3);transition:transform .08s,filter .15s}
+.btn:hover{filter:brightness(1.12)}.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.3)}
+.btn:disabled{filter:grayscale(.8) brightness(.7);cursor:not-allowed}
+.green{background:linear-gradient(#2fd36b,#14a24a)}.blue{background:linear-gradient(#2f9bff,#1b66c9)}
+.orange{background:linear-gradient(#ff9a3d,#e0561a)}.gold{background:linear-gradient(#ffd23f,#e09a05);color:#3a2300}
+.purple{background:linear-gradient(#a78bfa,#6d28d9)}.grey{background:linear-gradient(#7a8aa8,#4a5a78)}
+.btns{display:flex;flex-direction:column;gap:10px}
+.small{font-size:.76rem;color:#9fc4ee;text-align:center;margin-top:10px;line-height:1.4}
+.count{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0;flex-wrap:wrap}
+.count button{width:42px;height:42px;border-radius:50%;border:2px solid #3da5ff;background:#0a2a5e;color:#fff;font-weight:800;font-size:1.05rem;cursor:pointer}
+.count button.sel{background:#ffd23f;color:#3a2300;border-color:#fff}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.names label{font-size:.75rem;color:#9fd0ff}
+.names input{width:100%;padding:9px;border-radius:10px;border:2px solid;background:#06204a;color:#fff;font:inherit;font-weight:700}
+.row2{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+/* HUD */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:10}
+#hud>*{pointer-events:auto}
+.panel{background:rgba(8,32,76,.86);border:2px solid #3da5ff;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.35);backdrop-filter:blur(4px)}
+#left{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;pointer-events:none}
+#hearts{font-size:1.55rem;letter-spacing:2px;text-shadow:0 2px 4px rgba(0,0,0,.5);pointer-events:none}
+#badge{padding:6px 12px;font-size:.82rem;font-weight:800;pointer-events:none}
+#prog{width:150px;height:8px;border-radius:5px;background:rgba(255,255,255,.2);overflow:hidden;border:1px solid #3da5ff}
+#prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2fd36b,#ffd23f)}
+#strip{position:absolute;top:10px;left:50%;transform:translateX(-50%);padding:6px 12px;font-size:.84rem;font-weight:800;white-space:nowrap;pointer-events:none}
+#right{position:absolute;top:10px;right:10px;display:flex;gap:8px;align-items:center}
+#coinBox{padding:7px 14px;font-weight:900;font-size:1.15rem;color:#ffd23f}
+.ib{width:42px;height:42px;border-radius:12px;font-size:1.15rem;cursor:pointer;color:#fff}
+#dash{position:absolute;top:62px;right:10px;width:262px;padding:12px;max-height:calc(100vh - 150px);overflow:auto}
+.dh{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.av{width:44px;height:44px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;flex:none}
+.dh b{display:block}.dh small{color:#9fd0ff}.star{margin-left:auto;font-weight:900;color:#ffd23f}
+.row{display:flex;justify-content:space-between;padding:5px 8px;background:rgba(255,255,255,.07);border-radius:8px;margin-bottom:4px;font-size:.84rem}
+.row b.neg{color:#ff7b7b}
+.meter{margin:6px 0}.meter small{display:flex;justify-content:space-between;font-size:.76rem}
+.meter .m{height:8px;border-radius:5px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:2px}.meter .m i{display:block;height:100%}
+.ins{margin-top:8px;font-size:.78rem}.ins h4{font-size:.8rem;margin-bottom:4px;color:#9fd0ff}
+.ins div{padding:2px 0}.ins div::before{content:'\2714  ';color:#31e07a}.ins .none{opacity:.55}.ins .none::before{content:''}
+.status{margin-top:8px;padding:8px;border-radius:10px;font-weight:800;text-align:center}
+#hint{position:absolute;left:50%;top:70px;transform:translateX(-50%) rotate(-2deg);background:#1b3d6b;border:3px solid #ffd23f;border-radius:10px;padding:8px 14px;font-weight:800;font-size:.95rem;text-align:center;pointer-events:none;transition:opacity .6s;max-width:80vw}
+#toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:35;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:center}
+#toast div{background:rgba(8,32,76,.93);border:2px solid #ffd23f;border-radius:12px;padding:8px 14px;font-weight:800;font-size:.88rem;animation:tin .25s,tout .5s 2.6s forwards;max-width:92vw;text-align:center}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes tout{to{opacity:0;transform:translateY(-8px)}}
+.pop{position:fixed;z-index:15;pointer-events:none;font-weight:900;font-size:1.05rem;text-shadow:0 2px 4px #000;animation:pup 1s forwards}
+@keyframes pup{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-46px)}}
+#touch{position:fixed;bottom:16px;left:0;right:0;display:none;justify-content:space-between;padding:0 16px;z-index:12;pointer-events:none}
+body.touch #touch{display:flex}
+#touch .grp{display:flex;gap:14px}
+.tb{pointer-events:auto;width:78px;height:78px;border-radius:50%;background:rgba(10,42,94,.72);border:3px solid #fff;font-size:2rem;color:#fff;display:flex;align-items:center;justify-content:center;touch-action:none}
+.tb.on{background:rgba(255,210,63,.85);color:#3a2300}
+/* modals */
+.evHead{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--c);margin-bottom:12px}
+.evIco{font-size:2.1rem;background:rgba(255,255,255,.25);border-radius:12px;padding:4px 10px}
+.evTag{font-weight:800;font-size:1.02rem}.who{font-size:.8rem;opacity:.92}
+.bossTag{display:inline-block;background:#d63a3a;border-radius:8px;padding:2px 8px;font-size:.72rem;margin-left:6px;vertical-align:middle}
+.evDesc{background:#fff;color:#12294d;padding:12px;border-radius:12px;margin-bottom:12px;line-height:1.45;font-size:.95rem}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:10px;border-radius:12px;border:0;font:inherit;color:#12294d;cursor:pointer;background:#e7f2ff;transition:transform .1s}
+.opt:hover{transform:scale(1.015)}
+.opt:nth-child(2){background:#e3f8e6}.opt:nth-child(3){background:#ffefd8}
+.opt small{display:block;color:#51657f;font-size:.78rem;margin-top:2px}
+.opt em{display:block;font-style:normal;font-size:.75rem;font-weight:700;margin-top:3px}
+.have{color:#0b8a3e}.miss{color:#c0392b}
+.ltr{width:28px;height:28px;border-radius:8px;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.l0{background:#8b5cf6}.l1{background:#22a652}.l2{background:#f59e0b}
+.fbBox{text-align:center}
+.fbTitle{display:inline-block;padding:8px 36px;border-radius:12px;font-size:1.5rem;font-weight:900;margin-bottom:10px}
+.fbTitle.good{background:#22a652}.fbTitle.ok{background:#e0a100}.fbTitle.bad{background:#d63a3a}
+.fbText{background:#fff;color:#12294d;padding:12px;border-radius:12px;margin:6px 0 12px;line-height:1.45;text-align:left}
+.effects{background:#0a2a5e;border:2px solid #3da5ff;border-radius:14px;padding:10px;text-align:left}
+.effects h4{margin-bottom:6px;font-size:.95rem}
+.ef{display:flex;justify-content:space-between;padding:5px 4px;border-bottom:1px solid rgba(255,255,255,.12);font-size:.9rem}
+.ef .p{color:#47e08a;font-weight:800}.ef .n{color:#ff7b7b;font-weight:800}
+.newIns{margin:8px 0;padding:8px;border-radius:10px;background:rgba(49,224,122,.18);font-size:.88rem}
+.endTitle{text-align:center;font-size:1.9rem;font-weight:900;color:#ffd23f;margin-bottom:6px}
+.pcard{border-radius:14px;padding:12px;margin:8px 0;border:3px solid}
+.pcard.sec{background:linear-gradient(#25b95a,#0f7a37);border-color:#8cf5b4}
+.pcard.mod{background:linear-gradient(#f7c52b,#c98b00);border-color:#ffe48a;color:#3a2600}
+.pcard.vul{background:linear-gradient(#e0414d,#a01723);border-color:#ff9aa2}
+.pcard h3{display:flex;justify-content:space-between;gap:8px;font-size:1.1rem}
+.pcard p{font-size:.88rem;margin:4px 0}
+.lesson{background:#fff;color:#12294d;border-radius:12px;padding:12px;margin:8px 0;font-size:.85rem;line-height:1.4}
+.lesson h4{margin:6px 0 3px;color:#1b66c9}.lesson li{margin-left:18px}
+.miss2{color:#c0392b}.have2{color:#0b8a3e}
+.worlds{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
+.wc{border-radius:14px;padding:10px 8px;border:3px solid rgba(255,255,255,.35);background:var(--c);min-height:150px;display:flex;flex-direction:column;gap:4px;font-size:.78rem}
+.wc b{font-size:.9rem}.wc .ico{font-size:2rem}.wc.lock{filter:grayscale(.9) brightness(.6)}.wc.next{border-color:#ffd23f;box-shadow:0 0 18px rgba(255,210,63,.65)}
+.wc .st{margin-top:auto;font-weight:900}
+.lb{display:flex;flex-direction:column;gap:5px;margin:8px 0}
+.lb div{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.08);border-radius:10px;padding:6px 10px;font-size:.9rem}
+.lb .dot{width:22px;height:22px;border-radius:50%;border:2px solid #fff;flex:none}
+.lb .sc{margin-left:auto;font-weight:900;color:#ffd23f}
+.kbd{display:inline-block;background:#06204a;border:1px solid #3da5ff;border-radius:6px;padding:1px 7px;font-size:.8rem;margin:0 2px}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;text-align:center}
+.stat3 div{background:rgba(255,255,255,.09);border-radius:10px;padding:8px;font-size:.82rem}.stat3 b{display:block;font-size:1.25rem;color:#ffd23f}
+#how{z-index:60}
+.hs{background:rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;margin:8px 0;border:2px solid transparent;transition:background .2s}
+.hs h4{color:#ffd23f;margin-bottom:4px;font-size:1rem}
+.hs li{margin-left:18px;font-size:.88rem;line-height:1.5}
+.hs.hl{border-color:#ffd23f;background:rgba(255,210,63,.14)}
+@media (max-width:820px){
+ h1{font-size:1.8rem}
+ #strip{top:auto;bottom:6px;font-size:.7rem;padding:4px 8px}
+ #dash{width:min(262px,70vw)}
+ .worlds{grid-template-columns:repeat(2,1fr)}
+ #toast{bottom:110px}
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<canvas id="c2" class="hidden"></canvas>
+
+<div id="menu" class="overlay">
+ <div class="card">
+  <h1>Personal Risk<br>Quest <span>3D</span></h1>
+  <p class="tag" data-i="tag"></p>
+  <div class="btns">
+   <button id="bSingle" class="btn orange" data-i="bSingle"></button>
+   <button id="bMulti" class="btn blue" data-i="bMulti"></button>
+   <button id="bFast" class="btn green"></button>
+   <button id="bHow" class="btn purple" data-i="bHow"></button>
+   <button id="bLang" class="btn blue"></button>
+   <button id="bSet" class="btn grey" data-i="bSet"></button>
+   <button id="bCont" class="btn gold hidden"></button>
+  </div>
+  <div id="setup" class="hidden">
+   <div class="count" id="countRow"><span id="cntLbl" data-i="cntLbl"></span> <button data-n="2">2</button><button data-n="3">3</button><button data-n="4">4</button></div>
+   <div class="names" id="names"></div>
+   <button id="bStart" class="btn green" style="width:100%" data-i="bStart"></button>
+  </div>
+  <p class="small" data-i="small"></p>
+ </div>
+</div>
+
+<div id="hud" class="hidden">
+ <div id="left"><div id="hearts"></div><div id="badge" class="panel"></div><div id="prog"><i></i></div></div>
+ <div id="strip" class="panel"></div>
+ <div id="right"><div id="coinBox" class="panel">0</div><button id="bDash" class="ib panel">&#128202;</button><button id="bHow2" class="ib panel">&#10067;</button><button id="bPause" class="ib panel">&#9208;</button></div>
+ <div id="dash" class="panel hidden"></div>
+ <div id="hint" class="hidden"></div>
+</div>
+<div id="touch"><div class="grp"><div class="tb" id="tL">&#9664;</div><div class="tb" id="tR">&#9654;</div></div><div class="tb" id="tJ">&#11014;</div></div>
+<div id="modal" class="overlay hidden"><div class="card" id="modalCard"></div></div>
+<div id="how" class="overlay hidden"><div class="card wide" id="howCard"></div></div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+'use strict';
+/* ============================================================
+   UTIL
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rm=n=>(n<0?'-':'')+'RM'+Math.abs(Math.round(n)).toLocaleString('en-US');
+const rms=n=>(n>0?'+':n<0?'-':'')+'RM'+Math.abs(Math.round(n)).toLocaleString('en-US');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
+let ok3D=typeof THREE!=='undefined';
+
+/* ============================================================
+   DATA: DUNIA, INSTRUMEN, EVENT
+   ============================================================ */
+const COLORS=['#3b82f6','#ec4899','#22c55e','#f59e0b'];
+const DEF_NAMES=['Aiman','Siti','Faiz','Zara'];
+const WORLDS=[
+ {name:'Protection Village',ico:'🏘️',c:'#22a652',topics:'Insurans kumpulan, insurans mikro, Perlindungan Tenang',mission:'Pilih perlindungan yang sesuai dengan kemampuan kewangan.',boss:'Raja Bil Hospital',sky:['#7fd0ff','#eafaff'],ground:0x5bc84a,dirt:0x8a5a35,decor:'village',floor:0x2e7d32},
+ {name:'Health & Accident Island',ico:'🏝️',c:'#1b8fe0',topics:'PA, insurans perjalanan, PERKESO, MySalam',mission:'Hadapi kemalangan dan kos rawatan tanpa menghabiskan semua simpanan.',boss:'Raja Kos Rawatan',sky:['#5cc0ff','#dff6ff'],ground:0xf0d58b,dirt:0xc9965a,decor:'island',floor:0x1a8fd6},
+ {name:'Employment City',ico:'🏙️',c:'#2b6fd6',topics:'SIP, perlindungan pekerja, CuepacsCare',mission:'Bertahan apabila kehilangan pekerjaan dan uruskan perlindungan kesihatan.',boss:'Raja Pemberhentian',sky:['#9db7ff','#f2ecff'],ground:0x9aa5b4,dirt:0x59657a,decor:'city',floor:0x20283a},
+ {name:'Retirement Mountain',ico:'⛰️',c:'#8b45d6',topics:'KWSP, PRS, pencen kerajaan',mission:'Kumpul simpanan dan pilih strategi untuk menjamin kehidupan selepas bersara.',boss:'Raja Inflasi Persaraan',sky:['#b99cf5','#ffe9d2'],ground:0x74b85c,dirt:0x7d6a5a,decor:'mountain',floor:0x3b2f4f},
+ {name:'Future Quest',ico:'🚀',c:'#c0399a',topics:'SSPN-i Plus, tabungan pendidikan, pengurusan kewangan jangka panjang',mission:'Capai masa depan yang stabil melalui gabungan simpanan dan perlindungan.',boss:'Raja Ketidakpastian',sky:['#ffb0e0','#fff3cc'],ground:0x8e6bff,dirt:0x4b3b9a,decor:'future',floor:0x2a1f5e}
+];
+/* instrumen: cost=premium tunai, inv/sav=dipindahkan ke pelaburan/simpanan, prot=indeks perlindungan */
+const INS={
+ kumpulan:{n:'Insurans Kumpulan',ico:'🏢',c:0x2f7de1,cost:100,prot:10,d:'Perlindungan hayat/perubatan melalui majikan. Semak had, tanggungan dan pengecualian.'},
+ mikro:{n:'Insurans Mikro',ico:'🏪',c:0x22a652,cost:80,prot:9,d:'Premium rendah untuk pendapatan kecil atau tidak tetap, termasuk peniaga kecil.'},
+ tenang:{n:'Perlindungan Tenang',ico:'🏠',c:0x14b8a6,cost:60,prot:9,d:'Pelan asas berkos rendah supaya lebih ramai mampu mendapat perlindungan.'},
+ pa:{n:'PA & Medical',ico:'🛡️',c:0xe0414d,cost:150,prot:12,d:'Perlindungan kemalangan dan perubatan. Tuntutan bergantung pada terma polisi.'},
+ travel:{n:'Insurans Perjalanan',ico:'✈️',c:0x38bdf8,cost:80,prot:8,d:'Menampung kecemasan perubatan, kehilangan bagasi dan pembatalan semasa bercuti.'},
+ perkeso:{n:'PERKESO',ico:'🧰',c:0xf59e0b,cost:0,prot:10,d:'Perlindungan bencana kerja dan faedah keilatan untuk pekerja yang mencarum.'},
+ mysalam:{n:'MySalam',ico:'🩺',c:0xec4899,cost:0,prot:9,d:'Skim kerajaan untuk golongan sasaran: bantuan penyakit kritikal dan kemasukan hospital.'},
+ sip:{n:'SIP (Insurans Pekerjaan)',ico:'💼',c:0x6366f1,cost:0,prot:9,d:'Sistem Insurans Pekerjaan memberi sokongan pendapatan sementara jika hilang kerja.'},
+ cuepacs:{n:'CuepacsCare',ico:'🏥',c:0x0ea5e9,cost:0,prot:8,d:'Skim kebajikan/kesihatan untuk penjawat awam. Semak terma terkini.'},
+ kwsp:{n:'KWSP',ico:'🏦',c:0x7c3aed,inv:200,prot:6,d:'Simpanan persaraan wajib dan sukarela. Caruman awal memberi kesan kompaun jangka panjang.'},
+ prs:{n:'PRS',ico:'📈',c:0xa855f7,inv:200,prot:7,d:'Skim Persaraan Swasta sukarela. Semak insentif cukai dan syarat pengeluaran terkini.'},
+ pencen:{n:'Pencen Kerajaan',ico:'🏛️',c:0x8b5cf6,cost:0,prot:6,d:'Faedah pencen untuk penjawat awam. Semak syarat dan kadar terkini.'},
+ sspn:{n:'SSPN-i Plus',ico:'🎓',c:0xd946ef,inv:150,prot:6,d:'Simpanan pendidikan berkala. Semak insentif dan terma terkini.'},
+ dana:{n:'Dana Kecemasan',ico:'🐷',c:0xf472b6,sav:500,prot:10,d:'Simpanan 3-6 bulan perbelanjaan supaya tidak perlu berhutang apabila kecemasan tiba.'}
+};
+const DEFAULT_FAIL=[-600,-1500,0,-4,9,-1];
+/* O(teks, nota, maklum balas, [tunai,simpanan,pelaburan,perlindungan,risiko,nyawa], kualiti, {ins,need}) */
+const O=(t,n,fb,fx,q,x)=>{x=x||{};const need=Array.isArray(x.need)?{ids:x.need,n:1}:x.need;return{t,n,fb,fx,q,ins:x.ins,need};};
+const EVS=[
+ /* DUNIA 1 */[
+  {t:'Tawaran Ejen Insurans',icon:'🧑‍💼',d:'Seorang ejen menawarkan beberapa pelan perlindungan dengan premium yang berbeza-beza. Apakah tindakan anda?',o:[
+   O('Bandingkan 2-3 pelan dan pilih mengikut bajet dan keperluan','(Semak manfaat, had dan pengecualian)','Bijak! Membandingkan pelan mengelakkan pembaziran premium dan memastikan perlindungan sesuai dengan keperluan.',[-120,0,0,10,-8,0],'good',{ins:'tenang'}),
+   O('Beli pelan paling mahal tanpa membandingkan','(Premium tinggi)','Anda dilindungi, tetapi premium tinggi membebankan aliran tunai. Bandingkan dahulu sebelum membeli.',[-700,0,0,8,-3,0],'ok'),
+   O('Tolak kerana menganggap insurans membazir','(Tiada perlindungan)','Anda jimat sekarang, tetapi satu musibah boleh menghabiskan simpanan bertahun-tahun.',[100,0,0,-3,7,0],'bad')]},
+  {t:'Banjir Kilat',icon:'🌊',d:'Banjir kilat merosakkan stok dan peralatan perniagaan kecil anda. Kerugian anggaran RM2,000 (simulasi).',failMsg:'Anda belum memiliki Insurans Mikro, jadi tuntutan tidak dapat dibuat. Kos terpaksa ditanggung sendiri. Dapatkan perlindungan ini lebih awal!',o:[
+   O('Tuntut insurans mikro untuk kerosakan stok','(Dokumentasikan kerosakan)','Tuntutan diproses dan perniagaan pulih dengan lebih pantas. Insurans mikro sesuai untuk pendapatan kecil.',[-100,0,0,13,-10,0],'good',{need:['mikro']}),
+   O('Guna simpanan untuk membeli stok semula','(Simpanan susut)','Perniagaan pulih tetapi simpanan peribadi banyak berkurang.',[-400,-1800,0,-1,6,-1],'ok'),
+   O('Tutup perniagaan sepenuhnya','(Kehilangan sumber pendapatan)','Anda kehilangan modal dan sumber pendapatan sekaligus.',[-500,-1000,0,-6,12,-1],'bad')]},
+  {t:'Bos: Bil Hospital Mengejut',icon:'🏥',d:'Anda dimasukkan ke hospital dan bil rawatan mencecah RM8,000 (simulasi). Pilih strategi yang paling tepat untuk menewaskan bos ini!',failMsg:'Anda belum memiliki Insurans Kumpulan atau Perlindungan Tenang. Seluruh bil terpaksa ditanggung sendiri dan simpanan anda tergugat teruk!',fail:[-800,-3500,0,-5,12,-1],o:[
+   O('Tuntut melalui Insurans Kumpulan atau Perlindungan Tenang','(Semak had manfaat dan terma polisi)','Hebat! Perlindungan yang dipilih awal menanggung sebahagian besar bil. Bos ditewaskan!',[-200,0,0,15,-12,1],'good',{need:['kumpulan','tenang']}),
+   O('Bayar sepenuhnya menggunakan simpanan sendiri','(Simpanan susut banyak)','Anda mampu membayar, tetapi simpanan jangka panjang berkurang dengan ketara.',[-500,-3500,0,-2,8,0],'ok'),
+   O('Pinjam daripada peminjam tidak berlesen','(Faedah sangat tinggi)','Faedah tinggi dan tekanan penagihan membawa anda ke kancah hutang.',[-1500,0,0,-8,15,-1],'bad')]}
+ ],
+ /* DUNIA 2 */[
+  {t:'Kemalangan Jalan Raya',icon:'🚑',d:'Anda terlibat dalam kemalangan ketika pulang dari kerja. Kos rawatan anggaran RM1,000 dan pendapatan anda terjejas.',failMsg:'Anda belum memiliki perlindungan PA & Medical, jadi kos rawatan terpaksa ditanggung sendiri.',o:[
+   O('Gunakan perlindungan PA yang bersesuaian','(Tuntutan tertakluk pada terma polisi)','Anda menggunakan perlindungan PA. Tuntutan diluluskan dalam tempoh 5 hari bekerja.',[-200,-200,0,15,-10,0],'good',{need:['pa']}),
+   O('Bayar semua kos menggunakan simpanan sendiri','(Risiko mengurangkan simpanan)','Anda berjaya membayar, tetapi simpanan susut dengan banyak.',[-300,-1500,0,-2,6,-1],'ok'),
+   O('Abaikan risiko dan tidak membuat persediaan kewangan','(Boleh menjejaskan kestabilan kewangan)','Tanpa persediaan, kos rawatan dan kehilangan pendapatan sangat membebankan anda.',[-800,-2000,0,-6,14,-1],'bad')]},
+  {t:'Sakit di Luar Negara',icon:'✈️',d:'Anda mengalami keracunan makanan ketika bercuti dan perlu dimasukkan ke hospital swasta di luar negara.',failMsg:'Anda belum memiliki insurans perjalanan, jadi kos hospital luar negara terpaksa ditanggung sendiri.',o:[
+   O('Hubungi talian bantuan dan tuntut insurans perjalanan','(Simpan semua resit)','Talian bantuan dan tuntutan membantu menampung kos rawatan kecemasan anda.',[-100,0,0,13,-10,0],'good',{need:['travel']}),
+   O('Bayar kos hospital sendiri','(Kos tinggi)','Anda berjaya membayar, tetapi kos hospital luar negara agak besar.',[-600,-2200,0,-2,8,-1],'ok'),
+   O('Pulang segera tanpa rawatan sempurna','(Kesihatan terjejas)','Mengabaikan rawatan menjejaskan kesihatan dan menambah kos kemudian.',[-300,-200,0,-5,10,-1],'bad')]},
+  {t:'Bos: Penyakit Kritikal & Kecederaan',icon:'🩺',d:'Ahli keluarga didiagnos penyakit kritikal dan anda juga tercedera di tempat kerja. Gunakan perlindungan sosial yang betul untuk menewaskan bos ini!',failMsg:'Anda belum memiliki PERKESO atau MySalam. Kos rawatan dan kehilangan pendapatan terpaksa ditanggung sendiri.',fail:[-800,-3000,0,-5,12,-1],o:[
+   O('Tuntut faedah PERKESO atau MySalam yang sesuai','(Lapor segera, bawa dokumen lengkap)','Faedah skim sosial meringankan beban kewangan keluarga. Bos ditewaskan!',[300,-200,0,14,-12,1],'good',{need:['perkeso','mysalam']}),
+   O('Tanggung sendiri menggunakan simpanan','(Simpanan terjejas)','Anda mampu menanggung, tetapi simpanan jangka panjang berkurang banyak.',[-500,-2500,0,-1,7,0],'ok'),
+   O('Sorokkan kecederaan dan terus bekerja','(Tidak melapor)','Tidak melapor boleh menjejaskan hak tuntutan dan memburukkan kecederaan.',[0,0,0,-5,12,-1],'bad')]}
+ ],
+ /* DUNIA 3 */[
+  {t:'Orientasi PERKESO & SIP',icon:'🏢',d:'Semasa orientasi, HR memaklumkan anda didaftarkan dengan PERKESO dan Sistem Insurans Pekerjaan (SIP). Apa yang anda lakukan?',o:[
+   O('Semak status caruman SIP dan simpan maklumat cara menuntut','(Tahu hak sebelum perlu)','Tepat! Mengetahui hak di bawah SIP memudahkan tuntutan apabila diperlukan.',[0,0,0,10,-8,0],'good',{ins:'sip'}),
+   O('Anggap majikan akan uruskan semuanya','(Bergantung sepenuhnya pada HR)','Anda masih dilindungi, tetapi tidak tahu prosedur tuntutan boleh melambatkan bantuan.',[0,0,0,3,-1,0],'ok'),
+   O('Abaikan kerana rasa tidak akan berlaku apa-apa','(Tidak ambil tahu)','Risiko tidak hilang hanya kerana kita tidak memikirkannya.',[0,0,0,-2,5,0],'bad')]},
+  {t:'Pembedahan Ahli Keluarga',icon:'🏥',d:'Ibu bapa anda (penjawat awam) perlu menjalani pembedahan. Kos anggaran RM6,000 (simulasi).',failMsg:'Anda belum memiliki CuepacsCare, jadi kos pembedahan terpaksa ditanggung sendiri.',o:[
+   O('Gunakan CuepacsCare dan semak terma panel hospital','(Semak had dan terma terkini)','Skim kebajikan/kesihatan penjawat awam meringankan kos pembedahan keluarga anda.',[-150,0,0,12,-9,0],'good',{need:['cuepacs']}),
+   O('Bayar sendiri menggunakan simpanan','(Simpanan susut)','Anda mampu membayar, tetapi simpanan berkurang banyak.',[-600,-3000,0,-2,8,0],'ok'),
+   O('Tangguh pembedahan kerana kos','(Kesihatan terjejas)','Menangguh rawatan boleh memburukkan keadaan dan menambah kos kemudian.',[0,0,0,-5,11,-1],'bad')]},
+  {t:'Bos: Pemberhentian Kerja',icon:'📉',d:'Syarikat mengurangkan operasi dan anda diberhentikan kerja secara tiba-tiba. Pilih strategi yang betul untuk menewaskan bos ini!',failMsg:'Anda belum menyemak SIP, jadi tiada sokongan pendapatan sementara. Simpanan susut dengan cepat!',fail:[-300,-2500,0,-5,12,-1],o:[
+   O('Tuntut faedah SIP dan mula mencari kerja baharu','(Perlu caruman SIP yang sah)','Faedah SIP membantu menampung perbelanjaan sementara anda mencari kerja baharu. Bos ditewaskan!',[800,-200,0,12,-10,1],'good',{need:['sip']}),
+   O('Guna simpanan sendiri sepanjang tempoh menganggur','(Simpanan susut)','Anda bertahan, tetapi simpanan susut dengan cepat.',[0,-1800,0,0,4,0],'ok'),
+   O('Abaikan dan berharap ada keajaiban','(Tiada pelan)','Tanpa pelan, simpanan susut dan tekanan meningkat.',[-300,-1000,0,-5,12,-1],'bad')]}
+ ],
+ /* DUNIA 4 */[
+  {t:'Gaji Pertama & KWSP',icon:'💼',d:'Anda menerima gaji pertama. Majikan mencarum KWSP bagi pihak anda. Apakah langkah anda untuk simpanan persaraan?',o:[
+   O('Semak akaun KWSP dan buat caruman sukarela kecil setiap bulan','(Simpanan persaraan tumbuh awal)','Bagus! Bermula awal memberi kesan kompaun yang besar dalam jangka panjang.',[-200,0,300,8,-6,0],'good',{ins:'kwsp'}),
+   O('Biarkan caruman wajib sahaja','(Tiada tindakan tambahan)','Caruman wajib ialah asas yang baik, tetapi mungkin tidak mencukupi untuk persaraan yang selesa.',[0,0,0,3,-1,0],'ok'),
+   O('Belanja sakan sebagai ganjaran diri','(Tiada perancangan)','Perbelanjaan melulu tanpa perancangan menjadikan anda mudah terjejas apabila risiko tiba.',[-900,0,0,-3,6,0],'bad')]},
+  {t:'Skim Persaraan Swasta (PRS)',icon:'📈',d:'KWSP sahaja mungkin tidak cukup untuk persaraan yang selesa. Anda mengetahui tentang Skim Persaraan Swasta (PRS).',o:[
+   O('Mulakan caruman PRS secara berkala','(Semak insentif cukai terkini)','PRS menambah lapisan simpanan persaraan sukarela. Semak syarat pengeluaran dan insentif terkini.',[-300,0,500,10,-8,0],'good',{ins:'prs'}),
+   O('Tangguh sehingga umur 40-an','(Kehilangan masa kompaun)','Menangguh bermakna kehilangan tahun-tahun kompaun yang berharga.',[0,0,0,-1,4,0],'ok'),
+   O('Guna wang itu untuk gajet baharu','(Perbelanjaan segera)','Kepuasan segera, tetapi persediaan persaraan terabai.',[-700,0,0,-3,6,0],'bad')]},
+  {t:'Bos: Inflasi Persaraan',icon:'🏔️',d:'Anda menghampiri usia bersara dan kos hidup meningkat. Satu sumber persaraan sahaja tidak cukup. Bina gabungan sumber untuk menewaskan bos ini!',failMsg:'Anda belum memiliki sekurang-kurangnya 2 sumber persaraan (KWSP, PRS atau pencen). Simpanan persaraan anda tidak mencukupi!',fail:[-500,-2500,-300,-4,10,-1],o:[
+   O('Gabungkan sekurang-kurangnya dua sumber: KWSP, PRS atau pencen','(Kepelbagaian sumber persaraan)','Gabungan beberapa sumber persaraan memberi aliran pendapatan yang lebih stabil. Bos ditewaskan!',[400,0,600,14,-12,1],'good',{need:{ids:['kwsp','prs','pencen'],n:2}}),
+   O('Bergantung pada satu sumber sahaja','(Risiko tidak mencukupi)','Satu sumber sahaja mungkin tidak cukup apabila kos hidup meningkat.',[0,0,0,3,3,0],'ok'),
+   O('Harap anak-anak menanggung kos hidup','(Tiada pelan sendiri)','Bergantung pada orang lain menjadikan kewangan anda tidak terjamin.',[0,-800,0,-5,10,-1],'bad')]}
+ ],
+ /* DUNIA 5 */[
+  {t:'SSPN-i Plus',icon:'🎓',d:'Anda ingin menyediakan dana pendidikan untuk anak, adik atau diri sendiri pada masa hadapan.',o:[
+   O('Buka SSPN-i Plus dan buat simpanan berkala','(Semak insentif dan terma terkini)','Simpanan pendidikan berkala meringankan beban kos pengajian pada masa hadapan.',[-250,0,400,8,-6,0],'good',{ins:'sspn'}),
+   O('Simpan dalam dompet digital sahaja','(Tiada pelan khusus)','Wang tersimpan, tetapi tanpa matlamat dan disiplin, ia mudah terbelanja.',[0,0,0,1,1,0],'ok'),
+   O('Harap ada biasiswa nanti','(Bergantung pada nasib)','Biasiswa tidak dijamin. Perancangan awal lebih selamat.',[0,0,0,-2,5,0],'bad')]},
+  {t:'Skim Cepat Kaya',icon:'🕵️',d:'Seorang kenalan mengajak anda melabur dalam skim yang menjanjikan pulangan 30% sebulan tanpa risiko.',o:[
+   O('Semak status lesen syarikat di laman pengawal selia dan tolak','(Pulangan terlalu tinggi = amaran)','Pulangan tinggi dan terjamin ialah tanda amaran penipuan yang klasik.',[0,0,0,9,-9,0],'good'),
+   O('Labur sedikit sebagai percubaan','(Masih mengambil risiko)','Walaupun kecil, anda sudah menyuburkan skim yang berisiko.',[-500,0,0,-3,8,0],'ok'),
+   O('Labur semua simpanan kerana takut ketinggalan','(FOMO)','Skim itu lesap bersama wang anda. Jangan melabur melebihi apa yang anda faham.',[-1000,-2500,0,-8,16,-1],'bad')]},
+  {t:'Bos Akhir: Krisis Besar',icon:'🌪️',d:'Kemalangan, kehilangan pendapatan dan yuran pengajian tiba serentak! Hanya gabungan banyak lapisan perlindungan dan simpanan dapat menewaskan bos akhir ini.',failMsg:'Lapisan perlindungan anda belum mencukupi (perlukan sekurang-kurangnya 5 instrumen). Krisis ini menghentam kewangan anda dengan teruk!',fail:[-1000,-3500,-300,-6,14,-2],o:[
+   O('Gunakan lapisan perlindungan: dana kecemasan, insurans, skim sosial dan simpanan pendidikan','(Perlukan sekurang-kurangnya 5 instrumen)','Gabungan lapisan perlindungan dan simpanan membolehkan anda menempuh krisis besar. Bos akhir ditewaskan!',[500,0,0,15,-15,2],'good',{need:{ids:'ALL',n:5}}),
+   O('Bergantung pada simpanan peribadi sahaja','(Simpanan susut banyak)','Simpanan menampung sebahagian, tetapi tanpa lapisan perlindungan ia cepat susut.',[-800,-4000,0,-2,9,0],'ok'),
+   O('Berhutang dengan kad kredit','(Faedah menimbun)','Hutang berfaedah tinggi memburukkan keadaan kewangan anda.',[-1500,0,0,-6,14,-1],'bad')]}
+ ]
+];
+const SEQ=[
+ ['start','coins','blocks:kumpulan','gap:3','walkers','gate:0','checkpoint','platform:mikro','gap2','spikes','gate:1','stairs','blocks:tenang','checkpoint','boss','goal'],
+ ['start','coins','blocks:pa','gap:3','spikes','gate:0','checkpoint','platform:travel','walkers','gap2','gate:1','stairs','blocks:perkeso','gap:3','platform:mysalam','checkpoint','boss','goal'],
+ ['start','coins','blocks:sip','gap:3','walkers','gate:0','checkpoint','platform:cuepacs','gap2','spikes','gate:1','stairs','walkers','checkpoint','boss','goal'],
+ ['start','coins','blocks:kwsp','gap:3','walkers','gate:0','checkpoint','platform:prs','gap2','stairs','blocks:pencen','gate:1','spikes','checkpoint','boss','goal'],
+ ['start','coins','blocks:sspn','gap:3','walkers','gate:0','checkpoint','platform:dana','gap2','spikes','gate:1','stairs','walkers','checkpoint','boss','goal']
+];
+const FAST_SKIP=['coins','stairs','walkers','spikes','gap2','checkpoint','gate:1'];
+
+/* ---------- Terjemahan Inggeris ---------- */
+const INS_EN={
+ kumpulan:['Group Insurance','Life/medical cover through the employer. Check the limits, dependants and exclusions.'],
+ mikro:['Micro-insurance','Low premiums for small or irregular incomes, including small traders.'],
+ tenang:['Perlindungan Tenang','A low-cost basic plan so more people can afford protection.'],
+ pa:['PA & Medical','Accident and medical cover. Claims depend on the policy terms.'],
+ travel:['Travel Insurance','Covers medical emergencies, lost luggage and cancellations while travelling.'],
+ perkeso:['PERKESO (SOCSO)','Protection for work injuries and invalidity benefits for contributing workers.'],
+ mysalam:['MySalam','Government scheme for target groups: critical illness and hospital admission aid.'],
+ sip:['SIP (Employment Insurance)','The Employment Insurance System gives temporary income support if you lose your job.'],
+ cuepacs:['CuepacsCare','Welfare/health scheme for civil servants. Check the latest terms.'],
+ kwsp:['EPF (KWSP)','Mandatory and voluntary retirement savings. Early contributions compound over time.'],
+ prs:['PRS','Private Retirement Scheme, voluntary. Check the latest tax incentives and withdrawal rules.'],
+ pencen:['Government Pension','Pension benefits for civil servants. Check the latest conditions and rates.'],
+ sspn:['SSPN-i Plus','Regular education savings. Check the latest incentives and terms.'],
+ dana:['Emergency Fund','3-6 months of expenses saved so you do not have to borrow when an emergency hits.']
+};
+const iname=k=>LANG==='en'?INS_EN[k][0]:INS[k].n;
+const idesc=k=>LANG==='en'?INS_EN[k][1]:INS[k].d;
+const WORLDS_EN=[
+ {topics:'Group insurance, micro-insurance, Perlindungan Tenang',mission:'Choose protection that fits what you can afford.',boss:'King Hospital Bill'},
+ {topics:'PA, travel insurance, PERKESO, MySalam',mission:'Face accidents and medical costs without draining all your savings.',boss:'King Medical Cost'},
+ {topics:'SIP, worker protection, CuepacsCare',mission:'Survive losing your job and manage your health cover.',boss:'King Layoff'},
+ {topics:'EPF, PRS, government pension',mission:'Build up savings and pick a strategy for life after retirement.',boss:'King Retirement Inflation'},
+ {topics:'SSPN-i Plus, education savings, long-term financial management',mission:'Reach a stable future by combining savings and protection.',boss:'King Uncertainty'}
+];
+const wtxt=(wi,f)=>(LANG==='en'&&WORLDS_EN[wi][f])?WORLDS_EN[wi][f]:WORLDS[wi][f];
+/* urutan pilihan sama seperti EVS */
+const EVS_EN=[
+ [
+  {t:'Insurance Agent Offer',d:'An agent offers several protection plans with different premiums. What do you do?',o:[
+   ['Compare 2-3 plans and choose according to your budget and needs','(Check benefits, limits and exclusions)','Smart! Comparing plans avoids overpaying premiums and makes sure the cover fits your needs.'],
+   ['Buy the most expensive plan without comparing','(High premium)','You are covered, but the high premium strains your cash flow. Compare before you buy.'],
+   ['Refuse because insurance seems like a waste','(No protection)','You save now, but one mishap can wipe out years of savings.']]},
+  {t:'Flash Flood',d:'A flash flood damages the stock and equipment of your small business. Estimated loss RM2,000 (simulation).',failMsg:'You do not own Micro-insurance, so the claim cannot be made. You must bear the cost yourself. Get this protection earlier!',o:[
+   ['Claim micro-insurance for the damaged stock','(Document the damage)','The claim is processed and your business recovers faster. Micro-insurance suits small and irregular incomes.'],
+   ['Use savings to restock','(Savings drop)','Your business recovers but your personal savings fall a lot.'],
+   ['Close the business completely','(Lose your income source)','You lose your capital and your source of income at once.']]},
+  {t:'Boss: Sudden Hospital Bill',d:'You are admitted to hospital and the bill reaches RM8,000 (simulation). Pick the most suitable strategy to defeat this boss!',failMsg:'You do not own Group Insurance or Perlindungan Tenang. The whole bill falls on you and your savings take a heavy hit!',o:[
+   ['Claim through Group Insurance or Perlindungan Tenang','(Check benefit limits and policy terms)','Great! Protection chosen early covers most of the bill. Boss defeated!'],
+   ['Pay in full from your own savings','(Savings drop a lot)','You can afford it, but your long-term savings drop noticeably.'],
+   ['Borrow from an unlicensed lender','(Very high interest)','High interest and harassment pull you into a debt spiral.']]}
+ ],
+ [
+  {t:'Road Accident',d:'You are in an accident on your way home from work. Treatment is about RM1,000 and your income is affected.',failMsg:'You do not own PA & Medical cover, so you must pay the treatment cost yourself.',o:[
+   ['Use the matching PA cover','(Claims subject to policy terms)','You use your PA cover. The claim is approved within 5 working days.'],
+   ['Pay all costs from your own savings','(Risk of draining savings)','You manage to pay, but your savings drop a lot.'],
+   ['Ignore the risk and make no financial preparation','(May hurt your financial stability)','Without preparation, treatment costs and lost income weigh heavily on you.']]},
+  {t:'Sick Overseas',d:'You get food poisoning on holiday and must be admitted to a private hospital overseas.',failMsg:'You do not own travel insurance, so you must pay the overseas hospital bill yourself.',o:[
+   ['Call the assistance hotline and claim travel insurance','(Keep all receipts)','The hotline and claim help cover your emergency treatment costs.'],
+   ['Pay the hospital bill yourself','(High cost)','You manage to pay, but overseas hospital costs are quite large.'],
+   ['Fly home immediately without proper treatment','(Health at risk)','Skipping treatment harms your health and adds costs later.']]},
+  {t:'Boss: Critical Illness & Injury',d:'A family member is diagnosed with a critical illness and you are also injured at work. Use the right social protection to defeat this boss!',failMsg:'You do not own PERKESO or MySalam. Medical costs and lost income fall on you.',o:[
+   ['Claim the suitable PERKESO or MySalam benefit','(Report promptly, bring complete documents)','Social scheme benefits ease the family burden. Boss defeated!'],
+   ['Bear it yourself using savings','(Savings affected)','You can cope, but long-term savings drop a lot.'],
+   ['Hide the injury and keep working','(Not reporting)','Not reporting can affect your claim rights and worsen the injury.']]}
+ ],
+ [
+  {t:'PERKESO & SIP Orientation',d:'During orientation, HR tells you that you are registered with PERKESO and the Employment Insurance System (SIP). What do you do?',o:[
+   ['Check your SIP contribution status and keep the claim information','(Know your rights before you need them)','Exactly! Knowing your SIP rights makes claiming easier when needed.'],
+   ['Assume the employer will handle everything','(Fully dependent on HR)','You are still covered, but not knowing the claim steps can delay help.'],
+   ['Ignore it because nothing will happen anyway','(Not bothering to learn)','Risks do not disappear just because we do not think about them.']]},
+  {t:'Family Surgery',d:'Your parents (civil servants) need surgery. Estimated cost RM6,000 (simulation).',failMsg:'You do not own CuepacsCare, so the surgery cost falls on you.',o:[
+   ['Use CuepacsCare and check the hospital panel terms','(Check limits and latest terms)','The civil servant welfare/health scheme eases your family surgery costs.'],
+   ['Pay yourself using savings','(Savings drop)','You can pay, but your savings fall a lot.'],
+   ['Postpone the surgery because of cost','(Health at risk)','Delaying treatment can worsen the condition and add costs later.']]},
+  {t:'Boss: Layoff',d:'The company scales down and you are laid off suddenly. Choose the right strategy to defeat this boss!',failMsg:'You have not set up SIP, so there is no temporary income support. Your savings drain quickly!',o:[
+   ['Claim SIP benefits and start looking for a new job','(Requires valid SIP contributions)','SIP benefits help cover your expenses while you look for a new job. Boss defeated!'],
+   ['Use your own savings while unemployed','(Savings drop)','You hold on, but your savings drain quickly.'],
+   ['Ignore it and hope for a miracle','(No plan)','Without a plan, savings drop and stress rises.']]}
+ ],
+ [
+  {t:'First Salary & EPF',d:'You receive your first salary. Your employer contributes to EPF (KWSP) on your behalf. What is your step for retirement savings?',o:[
+   ['Check your EPF account and make small voluntary contributions every month','(Retirement savings grow early)','Good! Starting early gives a big compounding effect over the long term.'],
+   ['Leave it at the mandatory contributions only','(No extra action)','Mandatory contributions are a good base, but may not be enough for a comfortable retirement.'],
+   ['Splurge as a reward for yourself','(No planning)','Reckless spending without planning leaves you exposed when risks arrive.']]},
+  {t:'Private Retirement Scheme (PRS)',d:'EPF alone may not be enough for a comfortable retirement. You learn about the Private Retirement Scheme (PRS).',o:[
+   ['Start regular PRS contributions','(Check the latest tax incentives)','PRS adds a voluntary layer of retirement savings. Check the latest withdrawal rules and incentives.'],
+   ['Delay until your 40s','(Lose compounding time)','Delaying means losing valuable years of compounding.'],
+   ['Use that money for a new gadget','(Instant spending)','Instant gratification, but your retirement preparation is neglected.']]},
+  {t:'Boss: Retirement Inflation',d:'You are nearing retirement age and living costs are rising. One retirement source alone is not enough. Build a combination of sources to defeat this boss!',failMsg:'You need at least 2 retirement sources (EPF, PRS or pension). Your retirement savings are not enough!',o:[
+   ['Combine at least two sources: EPF, PRS or pension','(Diversify retirement sources)','Combining several retirement sources gives a steadier income stream. Boss defeated!'],
+   ['Rely on a single source only','(Risk of not being enough)','A single source may not be enough when living costs rise.'],
+   ['Hope your children cover your living costs','(No plan of your own)','Depending on others leaves your finances unsecured.']]}
+ ],
+ [
+  {t:'SSPN-i Plus',d:'You want to prepare an education fund for a child, sibling or yourself in the future.',o:[
+   ['Open SSPN-i Plus and save regularly','(Check the latest incentives and terms)','Regular education savings ease the cost of future studies.'],
+   ['Keep it in a digital wallet only','(No dedicated plan)','The money is saved, but without a goal and discipline it is easily spent.'],
+   ['Hope for a scholarship later','(Leaving it to luck)','Scholarships are not guaranteed. Early planning is safer.']]},
+  {t:'Get-Rich-Quick Scheme',d:'An acquaintance invites you to invest in a scheme promising 30% returns a month with no risk.',o:[
+   ['Check the company licence on the regulator website and decline','(Too-high returns = warning sign)','High, guaranteed returns are a classic sign of a scam.'],
+   ['Invest a little as a trial','(Still taking risk)','Even if small, you have fed a risky scheme.'],
+   ['Invest all your savings for fear of missing out','(FOMO)','The scheme vanished with your money. Never invest beyond what you understand.']]},
+  {t:'Final Boss: Great Crisis',d:'An accident, lost income and tuition fees all arrive at once! Only a combination of many layers of protection and savings can defeat this final boss.',failMsg:'Your layers of protection are not enough yet (at least 5 instruments needed). The crisis hits your finances hard!',o:[
+   ['Use your layers: emergency fund, insurance, social schemes and education savings','(Needs at least 5 instruments)','Combining layers of protection and savings lets you get through the great crisis. Final boss defeated!'],
+   ['Rely on personal savings only','(Savings drop a lot)','Savings cover part of it, but without layers of protection they drain fast.'],
+   ['Borrow on a credit card','(Interest piles up)','High-interest debt worsens your financial position.']]}
+ ]
+];
+function locEv(wi,k){
+ const ev=EVS[wi][k];if(LANG!=='en')return ev;
+ const e=EVS_EN[wi][k];
+ return Object.assign({},ev,{t:e.t,d:e.d,failMsg:e.failMsg||ev.failMsg,o:ev.o.map((o,i)=>Object.assign({},o,{t:e.o[i][0],n:e.o[i][1],fb:e.o[i][2]}))});
+}
+
+/* ---------- Kandungan Cara Bermain (teks + skrip audio) ---------- */
+const HOW={
+ ms:[
+  {ico:'🎯',h:'Matlamat',p:['Kawal karakter melalui 5 dunia berdasarkan Bab 7: Instrumen Pengurusan Risiko Diri.','Bina perlindungan dan simpanan supaya kewangan kamu selamat apabila risiko tiba.','Skor akhir kamu menentukan pengakhiran permainan.'],
+   say:'Selamat datang ke Personal Risk Quest 3D. Kamu mengawal karakter melalui lima dunia berdasarkan Bab Tujuh, Instrumen Pengurusan Risiko Diri. Matlamat kamu ialah membina perlindungan dan simpanan supaya kewangan kamu selamat apabila risiko tiba. Skor akhir kamu menentukan pengakhiran permainan.'},
+  {ico:'🕹️',h:'Kawalan',p:['← → atau A D: bergerak.','Space, ↑ atau W: lompat. Tahan lama untuk lompat lebih tinggi.','C: buka dashboard kewangan. Esc: jeda.','Telefon: guna butang di skrin.'],
+   say:'Untuk bergerak, gunakan anak panah kiri dan kanan, atau kekunci A dan D. Tekan Space, anak panah atas atau W untuk melompat. Tahan lebih lama untuk lompat lebih tinggi. Tekan C untuk melihat dashboard kewangan, dan Escape untuk menjeda permainan. Di telefon, gunakan butang di skrin.'},
+  {ico:'🪙',h:'Apa yang dikutip',p:['Syiling: tambah RM20 wang tunai.','Perisai 🛡️: instrumen perlindungan. Ada kos premium tetapi meningkatkan indeks perlindungan. Pecahkan blok ? dari bawah, atau ambil di atas platform.','Hati ❤️: tambah satu nyawa. Tabung 🐷: tambah RM200 simpanan.'],
+   say:'Kutip syiling untuk menambah wang tunai. Kutip perisai perlindungan, iaitu instrumen seperti insurans, takaful dan skim kerajaan. Ia mungkin ada kos premium, tetapi meningkatkan indeks perlindungan kamu. Lompat dari bawah untuk memecahkan blok tanda soal. Hati menambah nyawa, dan tabung menambah simpanan.'},
+  {ico:'⚠️',h:'Bahaya',p:['Makhluk Risiko ungu: pijak dari atas untuk mengalahkannya.','Perangkap dan jurang: kamu hilang satu nyawa.','Jika nyawa habis, kamu Tumbang: tunai berkurang RM400 dan bermula semula dari bendera 🚩 terakhir.'],
+   say:'Berhati-hati dengan bahaya. Makhluk risiko berwarna ungu boleh dikalahkan dengan memijaknya dari atas. Perangkap dan jurang akan mengurangkan nyawa kamu. Jika nyawa habis, kamu tumbang, kehilangan empat ratus ringgit, dan bermula semula dari bendera semak terakhir.'},
+  {ico:'📋',h:'Event risiko & bos',p:['Lalui pintu ⚠ untuk mencetuskan event. Pilih tindakan A, B atau C.','Pilihan menuntut insurans hanya berjaya jika kamu sudah mengutip instrumen yang sesuai.','Di hujung setiap dunia, bos menguji sama ada kamu memilih instrumen yang betul.'],
+   say:'Apabila kamu melalui pintu amaran, satu event risiko akan berlaku. Pilih tindakan A, B atau C. Pilihan untuk menuntut insurans hanya berjaya jika kamu sudah mengutip instrumen yang sesuai di dalam level. Di hujung setiap dunia, ada bos yang menguji sama ada kamu bersedia dengan perlindungan yang betul.'},
+  {ico:'👥',h:'Multiplayer',p:['2 hingga 4 pemain bergilir menggunakan peranti yang sama.','Setiap pemain bermain level yang sama, dan skor dibandingkan di akhir dunia.'],
+   say:'Dalam mod multiplayer, dua hingga empat pemain bergilir menggunakan peranti yang sama. Setiap pemain bermain level yang sama, dan skor dibandingkan pada akhir setiap dunia.'},
+  {ico:'⭐',h:'Skor & pengakhiran',p:['Skor dikira daripada indeks perlindungan, indeks risiko (lebih rendah lebih baik) dan jumlah kekayaan bersih.','80 hingga 100: Financially Secure. 50 hingga 79: Moderately Protected. 0 hingga 49: Financially Vulnerable.'],
+   say:'Skor dikira daripada indeks perlindungan, indeks risiko, di mana lebih rendah lebih baik, dan jumlah kekayaan bersih kamu. Skor lapan puluh hingga seratus ialah Financially Secure. Lima puluh hingga tujuh puluh sembilan ialah Moderately Protected. Kurang daripada lima puluh ialah Financially Vulnerable.'},
+  {ico:'💡',h:'Tip',p:['Kutip perisai perlindungan sebelum sampai ke pintu event.','Baca terma dan semak tanggungan sebelum menuntut.','Mod Pantas: level lebih pendek, sesuai untuk demonstrasi.'],
+   say:'Beberapa tip. Kutip perisai perlindungan sebelum sampai ke pintu event. Sentiasa baca terma dan semak tanggungan sebelum menuntut. Jika kamu mahu bermain lebih singkat, pilih Mod Pantas. Selamat bermain!'}
+ ],
+ en:[
+  {ico:'🎯',h:'Goal',p:['Guide your character through 5 worlds based on Chapter 7: Personal Risk Management Instruments.','Build protection and savings so your finances stay safe when risks arrive.','Your final score decides which ending you get.'],
+   say:'Welcome to Personal Risk Quest 3D. You guide your character through five worlds based on Chapter Seven, Personal Risk Management Instruments. Your goal is to build protection and savings so your finances stay safe when risks arrive. Your final score decides which ending you get.'},
+  {ico:'🕹️',h:'Controls',p:['← → or A D: move.','Space, ↑ or W: jump. Hold longer to jump higher.','C: open the financial dashboard. Esc: pause.','On a phone: use the on-screen buttons.'],
+   say:'To move, use the left and right arrow keys, or the A and D keys. Press Space, the up arrow or W to jump. Hold longer to jump higher. Press C to see your financial dashboard, and Escape to pause. On a phone, use the on-screen buttons.'},
+  {ico:'🪙',h:'What to collect',p:['Coins: add RM20 to your cash.','Shields 🛡️: protection instruments. They cost a premium but raise your protection index. Break ? blocks from below, or grab them on platforms.','Hearts ❤️: add one life. Piggy banks 🐷: add RM200 to savings.'],
+   say:'Collect coins to add to your cash. Collect protection shields, which are instruments such as insurance, takaful and government schemes. They may cost a premium, but they raise your protection index. Jump from below to break the question mark blocks. Hearts add a life, and piggy banks add savings.'},
+  {ico:'⚠️',h:'Dangers',p:['Purple Risk creatures: stomp on them from above to defeat them.','Traps and pits: you lose one life.','If your lives run out you are Knocked Out: you lose RM400 cash and restart from the last 🚩 flag.'],
+   say:'Watch out for dangers. The purple risk creatures can be defeated by stomping on them from above. Traps and pits cost you a life. If your lives run out, you are knocked out, lose four hundred ringgit, and restart from the last checkpoint flag.'},
+  {ico:'📋',h:'Risk events & bosses',p:['Walk through a ⚠ gate to trigger an event. Choose action A, B or C.','Insurance claim options only work if you have already collected the right instrument.','At the end of each world, a boss tests whether you chose the right instruments.'],
+   say:'When you walk through a warning gate, a risk event happens. Choose action A, B or C. Options that claim insurance only work if you have already collected the right instrument in the level. At the end of each world, a boss tests whether you are ready with the right protection.'},
+  {ico:'👥',h:'Multiplayer',p:['2 to 4 players take turns on the same device.','Each player plays the same level, and scores are compared at the end of each world.'],
+   say:'In multiplayer mode, two to four players take turns on the same device. Each player plays the same level, and scores are compared at the end of each world.'},
+  {ico:'⭐',h:'Score & endings',p:['Your score comes from your protection index, risk index (lower is better) and total net worth.','80 to 100: Financially Secure. 50 to 79: Moderately Protected. 0 to 49: Financially Vulnerable.'],
+   say:'Your score comes from your protection index, your risk index, where lower is better, and your total net worth. A score of eighty to one hundred is Financially Secure. Fifty to seventy nine is Moderately Protected. Below fifty is Financially Vulnerable.'},
+  {ico:'💡',h:'Tips',p:['Collect protection shields before you reach an event gate.','Read the terms and check what is covered before claiming.','Fast Mode: shorter levels, great for demonstrations.'],
+   say:'A few tips. Collect protection shields before you reach an event gate. Always read the terms and check what is covered before claiming. If you want a shorter game, choose Fast Mode. Have fun!'}
+ ]
+};
+
+
+/* ============================================================
+   STATE & SKOR
+   ============================================================ */
+const S={sound:true,touch:'auto'};
+try{Object.assign(S,JSON.parse(lsGet('prq_set')||'{}'));}catch(e){}
+let LANG=S.lang==='en'?'en':'ms';
+const tr=(m,e)=>LANG==='en'?e:m;
+const G={players:[],fast:false,nPlayers:1,world:0,state:'menu',paused:false};
+let R=null;               // larian level semasa
+const INP={left:false,right:false,jump:false,jumpPressed:false};
+const PH={g:36,jump:14.2,speed:6.8,accel:55,decel:70,air:32,maxfall:-22,coyote:0.1,buf:0.12,stomp:10.5};
+
+function newPlayer(i,name){return{idx:i,name,color:COLORS[i],cash:3000,sav:5000,inv:2000,prot:30,risk:50,coins:0,owned:new Set(),cnt:{good:0,ok:0,bad:0},log:[],stomps:0};}
+function score(p){const net=p.cash+p.sav+p.inv;const w=clamp(net/130,0,100);return Math.round(clamp(0.35*p.prot+0.30*(100-p.risk)+0.35*w,0,100));}
+function ending(s){
+ if(s>=80)return{cls:'sec',name:'Financially Secure',ico:'🏠',msg:tr('Anda bijak mengurus risiko dan kewangan. Masa depan anda lebih terjamin!','You manage risk and money wisely. Your future is more secure!')};
+ if(s>=50)return{cls:'mod',name:'Moderately Protected',ico:'🙂',msg:tr('Anda sudah membuat beberapa persediaan, tetapi masih boleh dipertingkatkan.','You have made some preparations, but there is still room to improve.')};
+ return{cls:'vul',name:'Financially Vulnerable',ico:'⚠️',msg:tr('Anda terdedah kepada risiko kewangan. Buat perubahan sekarang!','You are exposed to financial risk. Make changes now!')};
+}
+function normalize(p){
+ if(p.sav<0){p.cash+=p.sav;p.sav=0}
+ if(p.inv<0){p.cash+=p.inv;p.inv=0}
+ if(p.cash<0){let d=-p.cash,t=Math.min(d,p.sav);p.sav-=t;d-=t;t=Math.min(d,p.inv);p.inv-=t;d-=t;p.cash=-d;}
+ p.prot=clamp(p.prot,0,100);p.risk=clamp(p.risk,0,100);
+}
+function needIds(n){return n.ids==='ALL'?Object.keys(INS):n.ids;}
+function meets(pl,n){return needIds(n).filter(k=>pl.owned.has(k)).length>=(n.n||1);}
+function needLabel(n){
+ if(n.ids==='ALL')return tr(`sekurang-kurangnya ${n.n} instrumen`,`at least ${n.n} instruments`);
+ const names=n.ids.map(k=>iname(k)).join(' / ');return(n.n>1?tr(`${n.n} daripada: `,`${n.n} of: `):'')+names;
+}
+function ser(p){return{idx:p.idx,name:p.name,cash:p.cash,sav:p.sav,inv:p.inv,prot:p.prot,risk:p.risk,coins:p.coins,owned:[...p.owned],cnt:p.cnt,log:p.log.slice(-40),stomps:p.stomps};}
+function saveGame(){lsSet('prq_save_v1',JSON.stringify({fast:G.fast,world:G.world,players:G.players.map(ser)}));}
+function loadSave(){try{const s=JSON.parse(lsGet('prq_save_v1')||'null');if(s&&s.players&&s.players.length&&s.world>=0&&s.world<5)return s;}catch(e){}return null;}
+
+/* ============================================================
+   BUNYI
+   ============================================================ */
+let AC=null;
+function beep(f,d,type,v,slide){
+ if(!S.sound)return;
+ try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();
+  o.type=type||'square';o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(40,f+slide),t+d);
+  g.gain.setValueAtTime(v||0.04,t);g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d);}catch(e){}
+}
+function sfx(k){
+ if(k==='coin'){beep(988,.08,'square',.035);setTimeout(()=>beep(1319,.12,'square',.035),70);}
+ else if(k==='jump')beep(280,.16,'square',.035,420);
+ else if(k==='hurt')beep(260,.3,'sawtooth',.05,-170);
+ else if(k==='stomp')beep(220,.12,'square',.05,-60);
+ else if(k==='pick'){[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.14,'triangle',.05),i*80));}
+ else if(k==='alert'){beep(440,.12,'square',.04);setTimeout(()=>beep(330,.18,'square',.04),130);}
+ else if(k==='good'){[523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,.15,'triangle',.05),i*100));}
+ else if(k==='bad'){[330,262,196].forEach((f,i)=>setTimeout(()=>beep(f,.18,'sawtooth',.04),i*120));}
+ else if(k==='win'){[523,659,784,1046,784,1046,1318].forEach((f,i)=>setTimeout(()=>beep(f,.16,'triangle',.05),i*110));}
+ else if(k==='bump')beep(150,.08,'square',.05);
+}
+
+/* ============================================================
+   INPUT
+   ============================================================ */
+const KEYS={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'jump',KeyW:'jump',Space:'jump'};
+function clearInput(){INP.left=INP.right=INP.jump=INP.jumpPressed=false;document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));}
+window.addEventListener('keydown',e=>{
+ if(e.code==='Escape'){if(!$('how').classList.contains('hidden')){closeHow();return;}if(G.state==='play')pauseGame();return;}
+ if(G.state!=='play'||G.paused)return;
+ if(e.code==='KeyC'||e.code==='Tab'){e.preventDefault();toggleDash();return;}
+ const k=KEYS[e.code];if(!k)return;e.preventDefault();
+ if(k==='jump'){if(!INP.jump)INP.jumpPressed=true;INP.jump=true;}else INP[k]=true;
+});
+window.addEventListener('keyup',e=>{const k=KEYS[e.code];if(!k)return;if(k==='jump')INP.jump=false;else INP[k]=false;});
+window.addEventListener('blur',clearInput);
+function bindTouch(id,k){
+ const el=$(id);
+ const on=e=>{e.preventDefault();el.classList.add('on');if(k==='jump'){if(!INP.jump)INP.jumpPressed=true;INP.jump=true;}else INP[k]=true;};
+ const off=e=>{e.preventDefault();el.classList.remove('on');if(k==='jump')INP.jump=false;else INP[k]=false;};
+ el.addEventListener('pointerdown',on);el.addEventListener('pointerup',off);el.addEventListener('pointercancel',off);el.addEventListener('pointerleave',off);
+}
+bindTouch('tL','left');bindTouch('tR','right');bindTouch('tJ','jump');
+function applyTouchSetting(){
+ const auto=('ontouchstart' in window)||(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
+ document.body.classList.toggle('touch',S.touch==='on'||(S.touch==='auto'&&auto));
+}
+
+/* ============================================================
+   BINA DATA LEVEL (logik tulen)
+   ============================================================ */
+function buildLevel(wi,fast){
+ const seq=SEQ[wi].filter(s=>!(fast&&FAST_SKIP.includes(s)));
+ const L={wi,solids:[],coins:[],picks:[],hearts:[],jars:[],walkers:[],spikes:[],blocks:[],gates:[],flags:[],boss:null,end:0,len:0,spawn:2};
+ let x=0;
+ const solid=(sx,sy,w,h,kind)=>{const s={x:sx,y:sy,w,h,kind};L.solids.push(s);return s;};
+ const ground=(w,top)=>solid(x,-6,w,6+(top||0),'ground');
+ const coinLine=(cx,cy,n,dx)=>{for(let i=0;i<n;i++)L.coins.push({x:cx+i*(dx||0.9),y:cy,got:false});};
+ const coinArc=(cx,n,h,span)=>{for(let i=0;i<n;i++){const t=n>1?i/(n-1):0.5;L.coins.push({x:cx+t*span,y:0.9+Math.sin(t*Math.PI)*h,got:false});}};
+ solid(-3,-6,3,60,'wall');
+ for(const seg of seq){
+  const[name,arg]=seg.split(':');
+  switch(name){
+   case'start':ground(10);L.spawn=2.5;x+=10;break;
+   case'coins':ground(14);coinLine(x+2,0.7,9);x+=14;break;
+   case'blocks':{ground(16);const bx=x+5;
+    [['coin'],['pick'],['coin']].forEach((t,i)=>{const b={x:bx+i,y:2,w:1,h:1,type:t[0],id:t[0]==='pick'?arg:null,used:false,bump:0};L.blocks.push(b);const s=solid(b.x,b.y,1,1,'block');s.blk=b;});
+    coinLine(x+10,0.7,4);x+=16;break;}
+   case'platform':{ground(18);solid(x+4,1.5,3,0.5,'plat');solid(x+9,2.7,3,0.5,'plat');solid(x+14,1.5,2,0.5,'plat');
+    coinLine(x+4.6,2.6,3);coinLine(x+14.4,2.6,2);
+    if(arg)L.picks.push({x:x+10.5,y:4.1,id:arg,got:false});
+    L.hearts.push({x:x+15,y:2.9,got:false});x+=18;break;}
+   case'gap':{const w=Number(arg||3);coinArc(x,5,1.5,w);x+=w;break;}
+   case'gap2':{coinArc(x,4,1.4,3);x+=3;ground(4);L.jars.push({x:x+2,y:0.9,got:false});x+=4;coinArc(x,4,1.4,3);x+=3;break;}
+   case'walkers':{ground(18);
+    L.walkers.push({x:x+6,y:0,w:0.9,h:0.8,x0:x+3,x1:x+9,dir:1,alive:true,sp:1.6});
+    L.walkers.push({x:x+14,y:0,w:0.9,h:0.8,x0:x+11,x1:x+16.5,dir:-1,alive:true,sp:1.9});
+    coinLine(x+2,0.7,3);coinLine(x+8.5,2.0,4);x+=18;break;}
+   case'spikes':{ground(16);L.spikes.push({x:x+7,y:0,w:2,h:0.55});coinArc(x+5.5,6,2.1,5);x+=16;break;}
+   case'stairs':{const hs=[0,1,2,1,0],ws=[3,2,2,2,3];
+    hs.forEach((h,i)=>{ground(ws[i],h);coinLine(x+0.5,h+0.7,Math.max(1,ws[i]-1));if(i===2)L.jars.push({x:x+1,y:h+0.9,got:false});x+=ws[i];});break;}
+   case'checkpoint':ground(8);L.flags.push({x:x+4,active:false});x+=8;break;
+   case'gate':ground(10);L.gates.push({x:x+5,k:Number(arg),done:false});x+=10;break;
+   case'boss':ground(24);L.boss={gateX:x+9,x:x+15.5,done:false,gate:false};x+=24;break;
+   case'goal':ground(16);L.end=x+9;x+=16;break;
+  }
+ }
+ L.len=x;solid(x,-6,3,60,'wall');
+ return L;
+}
+
+/* ============================================================
+   3D: ADEGAN
+   ============================================================ */
+let renderer,scene,camera,sun;
+const SCN={L:null,grp:null,player:null,boss:null,gates:[],flags:[],goal:null};
+const CAM={x:0,y:2.4,z:12.5,cut:null,att:0,snap:true};
+const CACHE={geo:{},mat:{},tex:{}};
+const GEO=(k,f)=>CACHE.geo[k]||(CACHE.geo[k]=f());
+const MAT=c=>CACHE.mat['l'+c]||(CACHE.mat['l'+c]=new THREE.MeshLambertMaterial({color:c}));
+const BAS=c=>CACHE.mat['b'+c]||(CACHE.mat['b'+c]=new THREE.MeshBasicMaterial({color:c}));
+function mkTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;}
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function TEX(k,w,h,draw){return CACHE.tex[k]||(CACHE.tex[k]=mkTex(w,h,draw));}
+function label(text,bg,fg,sx,sy,fs){
+ const t=TEX('lb'+text+bg,512,96,(c,w,h)=>{c.fillStyle=bg;rr(c,4,4,w-8,h-8,26);c.fill();c.lineWidth=6;c.strokeStyle='#fff';c.stroke();c.fillStyle=fg;c.font='bold '+(fs||44)+'px "Trebuchet MS",sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(text,w/2,h/2+2);});
+ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true}));s.scale.set(sx,sy,1);s.renderOrder=20;return s;
+}
+function emojiTex(e){return TEX('e'+e,128,128,(c,w,h)=>{c.font='92px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(e,w/2,h/2+6);});}
+
+function init3D(){
+ if(!ok3D)return;
+ try{
+  renderer=new THREE.WebGLRenderer({canvas:$('c'),antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.shadowMap.enabled=true;
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(45,1,0.1,400);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x88a070,0.95));
+  sun=new THREE.DirectionalLight(0xffffff,0.85);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
+  const sc=sun.shadow.camera;sc.left=-16;sc.right=16;sc.top=14;sc.bottom=-10;sc.near=1;sc.far=70;
+  scene.add(sun);scene.add(sun.target);
+  SPK.init();
+  window.addEventListener('resize',resize);resize();
+ }catch(e){console.warn('3D gagal dimulakan',e);ok3D=false;}
+}
+function resize(){
+ if(!ok3D){const c=$('c2');c.width=innerWidth;c.height=innerHeight;return;}
+ renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+}
+/* serpihan kilauan */
+const SPK={list:[],init(){const g=new THREE.SphereGeometry(0.08,6,6);for(let i=0;i<90;i++){const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true}));m.visible=false;m.userData={vx:0,vy:0,vz:0,life:0};scene.add(m);this.list.push(m);}},
+ burst(x,y,color,n){if(!ok3D)return;let k=0;for(const m of this.list){if(k>=n)break;if(m.userData.life>0)continue;m.visible=true;m.material.color.set(color);m.material.opacity=1;m.position.set(x,y,0.6);const a=Math.random()*6.28,s=2+Math.random()*4;m.userData.vx=Math.cos(a)*s;m.userData.vy=Math.sin(a)*s+2;m.userData.vz=(Math.random()-.5)*2;m.userData.life=0.7+Math.random()*0.4;k++;}},
+ update(dt){for(const m of this.list){const u=m.userData;if(u.life<=0)continue;u.life-=dt;u.vy-=12*dt;m.position.x+=u.vx*dt;m.position.y+=u.vy*dt;m.position.z+=u.vz*dt;m.material.opacity=Math.max(0,u.life);if(u.life<=0)m.visible=false;}}};
+function worldToScreen(x,y){
+ if(ok3D){const v=new THREE.Vector3(x,y,0).project(camera);return[(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight];}
+ return[(x-CAM.x)*sc2D()+innerWidth/2,innerHeight*0.72-(y-Math.max(0,CAM.y-2.4))*sc2D()];
+}
+function popText(x,y,text,color){const[sx,sy]=worldToScreen(x,y);const d=document.createElement('div');d.className='pop';d.textContent=text;d.style.left=sx+'px';d.style.top=sy+'px';d.style.color=color||'#ffd23f';document.body.appendChild(d);setTimeout(()=>d.remove(),1000);}
+function toast(text){const d=document.createElement('div');d.textContent=text;const t=$('toast');t.appendChild(d);while(t.children.length>3)t.firstChild.remove();setTimeout(()=>d.remove(),3200);}
+
+function setSky(W){
+ const c=document.createElement('canvas');c.width=2;c.height=256;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,W.sky[0]);g.addColorStop(1,W.sky[1]);x.fillStyle=g;x.fillRect(0,0,2,256);
+ scene.background=new THREE.CanvasTexture(c);scene.fog=new THREE.Fog(new THREE.Color(W.sky[1]).getHex(),50,150);
+}
+function clearScene(){
+ if(SCN.grp){scene.remove(SCN.grp);SCN.grp.traverse(o=>{if(o.userData&&o.userData.own&&o.geometry)o.geometry.dispose();});}
+ SCN.grp=null;SCN.player=null;SCN.boss=null;SCN.gates=[];SCN.flags=[];SCN.goal=null;
+}
+function mkBox(w,h,d,c){return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),MAT(c));}
+function mkTree(s,c1,c2){
+ const g=new THREE.Group();
+ const tr=new THREE.Mesh(GEO('trunk',()=>new THREE.CylinderGeometry(.15,.2,.8,6)),MAT(0x8d5a2b));tr.scale.setScalar(s);tr.position.y=.4*s;
+ const l1=new THREE.Mesh(GEO('cone1',()=>new THREE.ConeGeometry(.9,1.4,8)),MAT(c1||0x2e9e4f));l1.scale.setScalar(s);l1.position.y=1.3*s;
+ const l2=new THREE.Mesh(GEO('cone2',()=>new THREE.ConeGeometry(.7,1.1,8)),MAT(c2||0x37b45c));l2.scale.setScalar(s);l2.position.y=2*s;
+ g.add(tr,l1,l2);return g;
+}
+function mkPalm(s){
+ const g=new THREE.Group();
+ const tr=new THREE.Mesh(new THREE.CylinderGeometry(.12*s,.2*s,3.2*s,6),MAT(0xb98a50));tr.position.y=1.6*s;tr.rotation.z=.12;g.add(tr);
+ for(let i=0;i<6;i++){const l=new THREE.Mesh(GEO('leaf',()=>new THREE.ConeGeometry(.22,1.9,5)),MAT(0x2fae5a));const a=i/6*Math.PI*2;l.scale.setScalar(s);l.position.set(Math.cos(a)*.8*s+.2,3.2*s,Math.sin(a)*.8*s);l.rotation.z=Math.cos(a)>0?-1.25:1.25;l.rotation.x=Math.sin(a)*1.1;g.add(l);}
+ return g;
+}
+function mkHouse(c1,c2,w,h,d){
+ const g=new THREE.Group();const b=mkBox(w,h,d,c1);b.position.y=h/2;
+ const r=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*.78,h*.55,4),MAT(c2));r.position.y=h+h*.27;r.rotation.y=Math.PI/4;
+ const dr=mkBox(w*.22,h*.45,.06,0x6b3f1d);dr.position.set(0,h*.225,d/2+.02);
+ const wn=mkBox(w*.2,w*.2,.06,0xcdefff);wn.position.set(w*.28,h*.6,d/2+.02);const wn2=wn.clone();wn2.position.x=-w*.28;
+ g.add(b,r,dr,wn,wn2);return g;
+}
+function mkBuilding(w,h,d,c,rng){
+ const g=new THREE.Group();const b=mkBox(w,h,d,c);b.position.y=h/2;g.add(b);
+ const tx=TEX('win'+Math.floor(rng()*3),128,256,(ctx,W,H)=>{ctx.fillStyle='#3a4a66';ctx.fillRect(0,0,W,H);for(let y=10;y<H-10;y+=26)for(let x=10;x<W-10;x+=26){ctx.fillStyle=Math.random()<0.55?'#ffe9a0':'#7aa3d6';ctx.fillRect(x,y,14,16);}});
+ const f=new THREE.Mesh(new THREE.PlaneGeometry(w*.92,h*.94),new THREE.MeshBasicMaterial({map:tx}));f.position.set(0,h/2,d/2+.03);g.add(f);
+ return g;
+}
+function mkMountain(r,h){
+ const g=new THREE.Group();const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,6),MAT(0x8a7f9e));m.position.y=h/2;
+ const s=new THREE.Mesh(new THREE.ConeGeometry(r*.36,h*.3,6),MAT(0xffffff));s.position.y=h*.86;g.add(m,s);return g;
+}
+function mkCloud(){
+ const g=new THREE.Group();const m=BAS(0xffffff);
+ [[0,0,1.4],[1.3,-.2,1.0],[-1.3,-.2,1.0],[.5,.5,1.0]].forEach(p=>{const s=new THREE.Mesh(GEO('cl',()=>new THREE.SphereGeometry(1,10,8)),m);s.position.set(p[0],p[1],0);s.scale.set(p[2],p[2]*.75,p[2]*.6);g.add(s);});
+ return g;
+}
+function addDecor(grp,W,L,wi){
+ const rng=mulberry(wi*97+5);
+ const floor=new THREE.Mesh(new THREE.PlaneGeometry(900,300),MAT(W.floor));floor.rotation.x=-Math.PI/2;floor.position.set(L.len/2,wi===1?-3.4:-9.5,-40);grp.add(floor);
+ for(let x=-12;x<L.len+40;x+=11+rng()*7){
+  const z=-6-rng()*11,k=W.decor;
+  let m=null;
+  if(k==='village'){const t=rng();m=t<.45?mkHouse([0xff8a65,0x64b5f6,0xffd54f,0xba68c8][Math.floor(rng()*4)],[0xb71c1c,0x37474f,0x6d4c41][Math.floor(rng()*3)],2.4+rng()*1.6,2+rng()*1.4,2.2):mkTree(1.3+rng()*.9);}
+  else if(k==='island'){const t=rng();m=t<.55?mkPalm(1+rng()*.7):(t<.8?mkHouse(0xffffff,0xe53935,3+rng(),2.4,2.4):mkTree(1.1));}
+  else if(k==='city'){m=mkBuilding(3+rng()*3,6+rng()*14,3,[0x8fa6c8,0xb7a4d6,0x9ad0c8,0xd0a9a9][Math.floor(rng()*4)],rng);}
+  else if(k==='mountain'){m=rng()<.55?mkMountain(4+rng()*4,7+rng()*9):mkTree(1.4+rng(),0x2d7a4a,0x358f58);}
+  else{ // future
+   m=new THREE.Group();const isl=new THREE.Mesh(new THREE.CylinderGeometry(2.2,1.3,.7,9),MAT(0x9a7bff));const cn=new THREE.Mesh(new THREE.ConeGeometry(1.3,1.8,9),MAT(0x5b3fd0));cn.rotation.x=Math.PI;cn.position.y=-1.2;
+   const cr=new THREE.Mesh(new THREE.OctahedronGeometry(.7),new THREE.MeshLambertMaterial({color:0x7ff3ff,emissive:0x2288aa}));cr.position.y=1.2;m.add(isl,cn,cr);m.position.y=2+rng()*7;
+  }
+  if(m){m.position.x=x;m.position.z=z;if(k!=='future')m.position.y=0;else m.position.z=z-4;grp.add(m);if(k!=='future'||true)m.userData.decor=true;}
+  if(rng()<.45){const c=mkCloud();c.position.set(x+rng()*8,9+rng()*8,-22-rng()*14);const s=1+rng()*1.6;c.scale.setScalar(s);if(k==='future'){c.children.forEach(ch=>ch.material=BAS(0xffe0f4));}grp.add(c);}
+ }
+ // atas tanah dalam jurang: lantai hanya jauh di belakang; tambah kabus sempadan
+}
+function mkPlayerMesh(color,name){
+ const g=new THREE.Group();
+ const skin=MAT(0xffd7b0),jacket=MAT(new THREE.Color(color).getHex()),pants=MAT(0x2b3a67),hair=MAT(0x3b2a1e),bag=MAT(0xb5651d),shoe=MAT(0xffffff);
+ const body=new THREE.Mesh(new THREE.BoxGeometry(.55,.5,.38),jacket);body.position.y=.64;
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.3,16,12),skin);head.position.y=1.12;
+ const hr=new THREE.Mesh(new THREE.SphereGeometry(.325,16,10,0,Math.PI*2,0,Math.PI*.55),hair);hr.position.set(0,1.14,-.02);hr.rotation.x=-.2;
+ const fr=mkBox(.5,.1,.14,0x3b2a1e);fr.position.set(0,1.3,.18);
+ const e1=new THREE.Mesh(new THREE.SphereGeometry(.045,8,8),MAT(0x111111));e1.position.set(.1,1.1,.28);const e2=e1.clone();e2.position.x=-.1;
+ const bp=mkBox(.42,.5,.2,0xb5651d);bp.position.set(0,.64,-.28);
+ const legL=new THREE.Group(),legR=new THREE.Group(),armL=new THREE.Group(),armR=new THREE.Group();
+ [legL,legR].forEach((l,i)=>{l.position.set(i?-.14:.14,.4,0);const m=mkBox(.2,.4,.22,0x2b3a67);m.position.y=-.2;const s=mkBox(.24,.12,.32,0xffffff);s.position.set(0,-.4,.05);l.add(m,s);});
+ [armL,armR].forEach((a,i)=>{a.position.set(i?-.36:.36,.84,0);const m=new THREE.Mesh(new THREE.BoxGeometry(.14,.4,.14),jacket);m.position.y=-.2;const h=new THREE.Mesh(new THREE.SphereGeometry(.09,8,8),skin);h.position.y=-.42;a.add(m,h);});
+ g.add(body,head,hr,fr,e1,e2,bp,legL,legR,armL,armR);
+ g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+ const tag=label(name.slice(0,12),color,'#fff',1.9,.36,40);tag.position.y=1.95;g.add(tag);
+ g.userData={legL,legR,armL,armR,body,head,phase:0};
+ return g;
+}
+function mkWalker(){
+ const g=new THREE.Group();
+ const b=new THREE.Mesh(GEO('wb',()=>new THREE.SphereGeometry(.48,16,12)),MAT(0x7b3fb8));b.scale.set(1,.82,1);b.position.y=.4;b.castShadow=true;
+ const sp=GEO('sp',()=>new THREE.ConeGeometry(.1,.3,5));for(let i=0;i<5;i++){const s=new THREE.Mesh(sp,MAT(0xd8c3ff));const a=-.9+i*.45;s.position.set(Math.sin(a)*.42,.4+Math.cos(a)*.38,0);s.rotation.z=-a;g.add(s);}
+ const eyeW=new THREE.Mesh(GEO('ew',()=>new THREE.SphereGeometry(.13,10,8)),MAT(0xffffff)),pup=new THREE.Mesh(GEO('pu',()=>new THREE.SphereGeometry(.06,8,8)),MAT(0x111111));
+ [-.17,.17].forEach(x=>{const e=eyeW.clone();e.position.set(x,.5,.38);const p=pup.clone();p.position.set(x,.5,.49);g.add(e,p);const br=mkBox(.2,.05,.05,0x220033);br.position.set(x,.67,.42);br.rotation.z=x>0?.5:-.5;g.add(br);});
+ g.add(b);const lb=label(tr('RISIKO','RISK'),'#7b3fb8','#fff',1.3,.26,36);lb.position.y=1.25;g.add(lb);
+ return g;
+}
+function mkGate(){
+ const g=new THREE.Group();
+ const pm=MAT(0xd63a3a);[-1.5,1.5].forEach(x=>{const p=mkBox(.4,4.2,.5,0xd63a3a);p.position.set(x,2.1,0);p.castShadow=true;g.add(p);});
+ const top=mkBox(3.4,.5,.55,0xd63a3a);top.position.y=4.2;g.add(top);
+ const sign=label(tr('⚠ EVENT RISIKO','⚠ RISK EVENT'),'#7a1010','#ffd23f',3.2,.6,44);sign.position.y=3.35;g.add(sign);
+ const field=new THREE.Mesh(new THREE.PlaneGeometry(2.6,3.9),new THREE.MeshBasicMaterial({color:0xff5555,transparent:true,opacity:.2,side:THREE.DoubleSide}));field.position.y=2.05;g.add(field);
+ g.userData={field,sign};return g;
+}
+function mkFlag(){
+ const g=new THREE.Group();const pole=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,2.6,8),MAT(0xdddddd));pole.position.y=1.3;
+ const fl=new THREE.Mesh(new THREE.PlaneGeometry(1,.6),new THREE.MeshBasicMaterial({color:0xff6b6b,side:THREE.DoubleSide}));fl.position.set(.5,2.2,0);
+ const base=new THREE.Mesh(new THREE.CylinderGeometry(.3,.35,.15,12),MAT(0x666666));base.position.y=.07;g.add(pole,fl,base);g.userData={fl};return g;
+}
+function mkGoal(){
+ const g=new THREE.Group();
+ const b=mkBox(5,3.4,2.4,0xfff1cf);b.position.y=1.7;const r=new THREE.Mesh(new THREE.ConeGeometry(3.7,2.2,4),MAT(0xe0414d));r.position.y=4.5;r.rotation.y=Math.PI/4;
+ const d=mkBox(1.2,2,.1,0x6b3f1d);d.position.set(0,1,1.25);
+ [-1.7,1.7].forEach(x=>{const w=mkBox(.9,.9,.1,0xcdefff);w.position.set(x,2.2,1.25);g.add(w);});
+ const pole=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,3.4,8),MAT(0xffffff));pole.position.set(2.8,3.4,0);
+ const fl=new THREE.Mesh(new THREE.PlaneGeometry(1.4,.8),new THREE.MeshBasicMaterial({color:0x22c55e,side:THREE.DoubleSide}));fl.position.set(3.5,4.6,0);
+ const lb=label(tr('TAMAT DUNIA','WORLD END'),'#0f7a37','#fff',3.4,.65,44);lb.position.set(0,6.1,0);
+ g.add(b,r,d,pole,fl,lb);g.userData={fl};g.traverse(o=>{if(o.isMesh)o.castShadow=true;});return g;
+}
+function mkBoss(name){
+ const g=new THREE.Group();
+ const body=new THREE.Mesh(new THREE.SphereGeometry(1.7,24,18),MAT(0xb3202a));body.position.y=1.7;body.scale.set(1,.92,1);
+ [-1,1].forEach(s=>{const h=new THREE.Mesh(new THREE.ConeGeometry(.35,1.1,8),MAT(0xffe6a8));h.position.set(s*1.0,3.4,0);h.rotation.z=-s*.4;g.add(h);
+  const e=new THREE.Mesh(new THREE.SphereGeometry(.38,12,10),MAT(0xffffff));e.position.set(s*.62,2.1,1.35);const p=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8),MAT(0x111111));p.position.set(s*.62,2.05,1.7);
+  const br=mkBox(.8,.14,.1,0x2a0408);br.position.set(s*.62,2.6,1.45);br.rotation.z=s*.45;g.add(e,p,br);
+  const arm=new THREE.Mesh(new THREE.SphereGeometry(.5,10,8),MAT(0x8f1a22));arm.position.set(s*1.75,1.3,.4);g.add(arm);});
+ const mouth=mkBox(1.3,.35,.2,0x2a0408);mouth.position.set(0,1.1,1.55);g.add(mouth);
+ [-.45,-.15,.15,.45].forEach(x=>{const t=new THREE.Mesh(new THREE.ConeGeometry(.1,.25,4),MAT(0xffffff));t.position.set(x,1.25,1.62);t.rotation.x=Math.PI;g.add(t);});
+ const lb=label('👑 '+name,'#7a1010','#ffd23f',4.4,.7,40);lb.position.set(0,4.6,0);g.add(lb);
+ g.add(body);g.traverse(o=>{if(o.isMesh)o.castShadow=true;});return g;
+}
+function mkShieldMesh(id){
+ const I=INS[id];const g=new THREE.Group();
+ const geo=GEO('shield',()=>{const s=new THREE.Shape();s.moveTo(0,.55);s.lineTo(.42,.4);s.lineTo(.42,-.05);s.quadraticCurveTo(.42,-.4,0,-.62);s.quadraticCurveTo(-.42,-.4,-.42,-.05);s.lineTo(-.42,.4);s.lineTo(0,.55);const e=new THREE.ExtrudeGeometry(s,{depth:.18,bevelEnabled:true,bevelThickness:.05,bevelSize:.05,bevelSegments:2});e.translate(0,0,-.09);return e;});
+ const m=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:I.c,emissive:I.c,emissiveIntensity:.25}));g.add(m);
+ const em=new THREE.Mesh(new THREE.PlaneGeometry(.55,.55),new THREE.MeshBasicMaterial({map:emojiTex(I.ico),transparent:true}));em.position.set(0,.02,.2);g.add(em);
+ const lb=label(iname(id),'#0a2a5e','#fff',2.3,.42,38);lb.position.y=1.05;g.add(lb);
+ g.userData={spin:m,em};return g;
+}
+function mkHeart(){
+ const geo=GEO('heart',()=>{const s=new THREE.Shape(),x=0,y=0;s.moveTo(x+.25,y+.25);s.bezierCurveTo(x+.25,y+.25,x+.2,y,x,y);s.bezierCurveTo(x-.3,y,x-.3,y+.35,x-.3,y+.35);s.bezierCurveTo(x-.3,y+.55,x-.1,y+.77,x+.25,y+.95);s.bezierCurveTo(x+.6,y+.77,x+.8,y+.55,x+.8,y+.35);s.bezierCurveTo(x+.8,y+.35,x+.8,y,x+.5,y);s.bezierCurveTo(x+.35,y,x+.25,y+.25,x+.25,y+.25);const e=new THREE.ExtrudeGeometry(s,{depth:.2,bevelEnabled:true,bevelThickness:.05,bevelSize:.04,bevelSegments:2});e.translate(-.25,-.45,-.1);e.scale(.7,.7,.7);return e;});
+ return new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:0xff3b5c,emissive:0x661122}));
+}
+function mkJar(){
+ const g=new THREE.Group();const pink=MAT(0xff9ec4);
+ const b=new THREE.Mesh(GEO('pig',()=>new THREE.SphereGeometry(.45,14,12)),pink);b.scale.set(1.15,.95,.9);b.position.y=.1;
+ const sn=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,.14,10),MAT(0xff7fae));sn.rotation.x=Math.PI/2;sn.position.set(0,.1,.46);
+ [-.2,.2].forEach(x=>{const e=new THREE.Mesh(new THREE.ConeGeometry(.12,.22,4),pink);e.position.set(x,.52,.1);g.add(e);const l=mkBox(.14,.2,.14,0xff7fae);l.position.set(x*1.1,-.35,0);g.add(l);});
+ const slot=mkBox(.3,.05,.06,0x550022);slot.position.set(0,.52,-.05);
+ const lb=label(tr('TABUNG','SAVINGS'),'#a8325e','#fff',1.3,.26,34);lb.position.y=.95;
+ g.add(b,sn,slot,lb);g.traverse(o=>{if(o.isMesh)o.castShadow=true;});return g;
+}
+function qTex(used){return TEX('q'+used,128,128,(c,w,h)=>{c.fillStyle=used?'#8a8a8a':'#f7b500';c.fillRect(0,0,w,h);c.strokeStyle=used?'#5e5e5e':'#a86b00';c.lineWidth=8;c.strokeRect(4,4,w-8,h-8);c.fillStyle=used?'#6b6b6b':'#fff3b0';c.font='bold 88px "Trebuchet MS",sans-serif';c.textAlign='center';c.textBaseline='middle';if(!used)c.fillText('?',w/2,h/2+6);});}
+
+function buildScene(wi,fast){
+ const W=WORLDS[wi];const L=buildLevel(wi,fast);SCN.L=L;
+ if(!ok3D)return L;
+ clearScene();setSky(W);
+ const grp=new THREE.Group();scene.add(grp);SCN.grp=grp;
+ const dirt=MAT(W.dirt),top=MAT(W.ground),lip=MAT(new THREE.Color(W.ground).multiplyScalar(1.12).getHex());
+ for(const s of L.solids){
+  if(s.kind==='wall'||s.kind==='block')continue;
+  const d=s.kind==='ground'?4:3;const geo=new THREE.BoxGeometry(s.w,s.h,d);
+  const m=new THREE.Mesh(geo,[dirt,dirt,top,dirt,dirt,dirt]);m.userData.own=true;
+  m.position.set(s.x+s.w/2,s.y+s.h/2,0);m.receiveShadow=true;m.castShadow=s.kind!=='ground';grp.add(m);
+  const l=new THREE.Mesh(new THREE.BoxGeometry(s.w+.04,.16,d+.04),lip);l.userData.own=true;l.position.set(s.x+s.w/2,s.y+s.h-.08,0);grp.add(l);
+ }
+ // blok soalan
+ for(const b of L.blocks){
+  const m=new THREE.Mesh(GEO('blk',()=>new THREE.BoxGeometry(1,1,1)),new THREE.MeshLambertMaterial({map:qTex(false)}));
+  m.position.set(b.x+.5,b.y+.5,0);m.castShadow=true;grp.add(m);b.mesh=m;
+ }
+ for(const c of L.coins){const m=new THREE.Mesh(GEO('coin',()=>{const g=new THREE.CylinderGeometry(.3,.3,.08,18);g.rotateX(Math.PI/2);return g;}),new THREE.MeshLambertMaterial({color:0xffc928,emissive:0x7a5200}));m.position.set(c.x,c.y,0);grp.add(m);c.mesh=m;}
+ for(const p of L.picks){const m=mkShieldMesh(p.id);m.position.set(p.x,p.y,0);grp.add(m);p.mesh=m;}
+ for(const h of L.hearts){const m=mkHeart();m.position.set(h.x,h.y,0);grp.add(m);h.mesh=m;}
+ for(const j of L.jars){const m=mkJar();m.position.set(j.x,j.y,0);grp.add(m);j.mesh=m;}
+ for(const w of L.walkers){const m=mkWalker();m.position.set(w.x,w.y,0);grp.add(m);w.mesh=m;}
+ for(const s of L.spikes){const g=new THREE.Group();const n=Math.round(s.w/.5);const base=mkBox(s.w,.1,1.4,0x4a1414);base.position.set(s.w/2,.05,0);g.add(base);for(let i=0;i<n;i++){const c=new THREE.Mesh(GEO('spk',()=>new THREE.ConeGeometry(.24,.6,6)),MAT(0xe53935));c.position.set(.25+i*.5,.38,0);c.castShadow=true;g.add(c);}g.position.set(s.x,s.y,0);grp.add(g);}
+ for(const gt of L.gates){const m=mkGate();m.position.set(gt.x,0,0);grp.add(m);gt.mesh=m;}
+ for(const f of L.flags){const m=mkFlag();m.position.set(f.x,0,0);grp.add(m);f.mesh=m;}
+ const goal=mkGoal();goal.position.set(L.end,0,-.8);grp.add(goal);SCN.goal=goal;
+ if(L.boss){const m=mkBoss(wtxt(wi,'boss'));m.position.set(L.boss.x,0,0);m.rotation.y=-.35;grp.add(m);L.boss.mesh=m;
+  const gm=mkGate();gm.position.set(L.boss.gateX,0,0);gm.userData.sign.material.map=null;grp.add(gm);L.boss.gateMesh=gm;gm.visible=false;}
+ const pm=mkPlayerMesh(R&&R.pl?R.pl.color:COLORS[0],R&&R.pl?R.pl.name:'Aiman');grp.add(pm);SCN.player=pm;pm.visible=!!R;
+ addDecor(grp,W,L,wi);
+ return L;
+}
+
+/* ============================================================
+   FIZIK & LOGIK LEVEL
+   ============================================================ */
+function overlapP(P,s){return P.x+P.w/2>s.x+0.0005&&P.x-P.w/2<s.x+s.w-0.0005&&P.y+P.h>s.y+0.0005&&P.y<s.y+s.h-0.0005;}
+function stepPhysics(dt){
+ const r=R,P=r.P,L=r.L,pl=r.pl;
+ P.inv=Math.max(0,P.inv-dt);P.coy=P.onGround?PH.coyote:Math.max(0,P.coy-dt);P.buf=Math.max(0,P.buf-dt);
+ if(INP.jumpPressed){P.buf=PH.buf;INP.jumpPressed=false;}
+ const dir=(INP.right?1:0)-(INP.left?1:0);
+ if(dir)P.face=dir;
+ const target=dir*PH.speed,a=dir===0?PH.decel:(P.onGround?PH.accel:PH.air);
+ if(P.vx<target)P.vx=Math.min(target,P.vx+a*dt);else if(P.vx>target)P.vx=Math.max(target,P.vx-a*dt);
+ if(P.buf>0&&P.coy>0){P.vy=PH.jump;P.buf=0;P.coy=0;P.onGround=false;P.jumping=true;sfx('jump');}
+ if(!INP.jump&&P.vy>0&&P.jumping){P.vy*=0.5;P.jumping=false;}
+ if(P.vy<=0)P.jumping=false;
+ P.vy=Math.max(PH.maxfall,P.vy-PH.g*dt);
+ // X
+ P.x+=P.vx*dt;
+ for(const s of L.solids){if(Math.abs(s.x+s.w/2-P.x)>s.w/2+2)continue;if(!overlapP(P,s))continue;
+  if(P.vx>0)P.x=s.x-P.w/2-0.001;else if(P.vx<0)P.x=s.x+s.w+P.w/2+0.001;P.vx=0;}
+ // Y
+ P.onGround=false;P.y+=P.vy*dt;
+ for(const s of L.solids){if(Math.abs(s.x+s.w/2-P.x)>s.w/2+2)continue;if(!overlapP(P,s))continue;
+  if(P.vy<=0){P.y=s.y+s.h;P.vy=0;P.onGround=true;}else{P.y=s.y-P.h-0.001;P.vy=0;if(s.blk)bumpBlock(s.blk);}}
+ P.run=Math.abs(P.vx)/PH.speed;
+ if(P.y<-9){fallDown();return;}
+ // syiling & item
+ const near=(o,rx,ry)=>Math.abs(o.x-P.x)<rx&&o.y>P.y-ry&&o.y<P.y+P.h+ry;
+ for(const c of L.coins)if(!c.got&&near(c,.6,.3))collectCoin(c);
+ for(const p of L.picks)if(!p.got&&near(p,.75,.5)){p.got=true;p.mesh&&(p.mesh.visible=false);gainInstrument(pl,p.id,p.x,p.y);}
+ for(const h of L.hearts)if(!h.got&&near(h,.7,.4)){h.got=true;h.mesh&&(h.mesh.visible=false);addHeart(h.x,h.y);}
+ for(const j of L.jars)if(!j.got&&near(j,.8,.4)){j.got=true;j.mesh&&(j.mesh.visible=false);pl.sav+=200;pl.risk-=1;normalize(pl);r.got.jars++;sfx('pick');SPK.burst(j.x,j.y,0xff9ec4,14);popText(j.x,j.y+.8,tr('+RM200 simpanan','+RM200 savings'),'#ffb3d1');toast(tr('Tabung simpanan: +RM200 simpanan','Piggy bank: +RM200 savings'));updateHUD();}
+ // bendera semak
+ for(const f of L.flags)if(!f.active&&Math.abs(f.x-P.x)<0.8){f.active=true;r.cp=f.x;if(f.mesh)f.mesh.userData.fl.material=BAS(0x2fd36b);sfx('good');toast(tr('Titik semak disimpan!','Checkpoint saved!'));SPK.burst(f.x,2.2,0x2fd36b,10);}
+ // musuh
+ for(const w of L.walkers){if(!w.alive)continue;w.x+=w.dir*w.sp*dt;if(w.x<w.x0){w.x=w.x0;w.dir=1;}if(w.x>w.x1){w.x=w.x1;w.dir=-1;}
+  if(P.x+P.w/2>w.x-w.w/2&&P.x-P.w/2<w.x+w.w/2&&P.y<w.y+w.h&&P.y+P.h>w.y){
+   if(P.vy<0&&P.y>w.y+w.h*0.4){w.alive=false;P.vy=PH.stomp;P.jumping=false;pl.cash+=30;pl.risk-=1;pl.stomps++;normalize(pl);sfx('stomp');SPK.burst(w.x,.5,0xb78cff,12);popText(w.x,1.2,tr('Risiko dikurangkan! +RM30','Risk reduced! +RM30'),'#c9a8ff');r.got.stomps++;updateHUD();if(w.mesh)w.mesh.visible=false;}
+   else if(P.inv<=0)damage(tr('Dilanggar risiko!','Hit by a risk!'));}}
+ for(const s of L.spikes){if(P.x+P.w/2>s.x&&P.x-P.w/2<s.x+s.w&&P.y<s.y+s.h)if(P.inv<=0)damage(tr('Terkena perangkap hutang!','Caught in a debt trap!'));}
+ // gate & bos
+ if(!r.pending){
+  for(const g of L.gates)if(!g.done&&Math.abs(g.x-P.x)<0.55){g.done=true;r.pending={ev:locEv(r.wi,g.k),gate:g,boss:false};break;}
+  if(!r.pending&&L.boss&&!L.boss.done&&P.x>=L.boss.gateX){L.boss.done=true;r.pending={ev:locEv(r.wi,2),gate:null,boss:true};}
+  if(!r.pending&&L.boss&&L.boss.done&&!r.done&&P.x>=L.end)finishLevel();
+ }
+}
+function bumpBlock(b){
+ if(b.used)return;b.used=true;b.bump=0.25;sfx('bump');
+ if(b.mesh){b.mesh.material=new THREE.MeshLambertMaterial({map:qTex(true)});}
+ if(b.type==='coin'){const c={x:b.x+.5,y:b.y+1.2,got:false};collectCoin(c);}
+ else gainInstrument(R.pl,b.id,b.x+.5,b.y+1.2);
+ SPK.burst(b.x+.5,b.y+1,0xffd23f,8);
+}
+function collectCoin(c){
+ c.got=true;if(c.mesh)c.mesh.visible=false;const pl=R.pl;pl.coins++;pl.cash+=20;R.got.coins++;sfx('coin');SPK.burst(c.x,c.y,0xffd23f,5);popText(c.x,c.y+.5,'+RM20','#ffd23f');updateHUD();
+}
+function addHeart(x,y){
+ if(R.hearts<5)R.hearts++;R.pl.risk=clamp(R.pl.risk-1,0,100);sfx('pick');SPK.burst(x,y,0xff3b5c,12);popText(x,y+.7,tr('+1 nyawa','+1 life'),'#ff7b9c');updateHUD();
+}
+function gainInstrument(pl,id,x,y){
+ const I=INS[id],nm=iname(id);
+ if(pl.owned.has(id)){pl.cash+=50;sfx('coin');popText(x,y+.7,'Bonus +RM50','#ffd23f');toast(tr(`Anda sudah ada ${nm}. Bonus RM50!`,`You already own ${nm}. RM50 bonus!`));updateHUD();return;}
+ pl.owned.add(id);const pay=(I.cost||0)+(I.inv||0)+(I.sav||0);
+ pl.cash-=pay;pl.inv+=(I.inv||0);pl.sav+=(I.sav||0);pl.prot+=I.prot;pl.risk-=3;normalize(pl);R.got.picks++;
+ sfx('pick');SPK.burst(x,y,I.c,18);popText(x,y+.9,tr(nm+' dimiliki!',nm+' acquired!'),'#9dffc1');
+ const note=pay?tr(` (kos ${rm(pay)})`,` (cost ${rm(pay)})`):tr(' (tanpa premium)',' (no premium)');
+ toast(`🛡️ ${nm} ${tr('dimiliki','acquired')}${note}: ${tr('perlindungan','protection')} +${I.prot}`);updateHUD();
+}
+function damage(msg){
+ const P=R.P;R.hearts--;R.pl.risk=clamp(R.pl.risk+2,0,100);P.inv=1.6;P.vy=8;P.vx=-P.face*6;P.onGround=false;sfx('hurt');
+ SPK.burst(P.x,P.y+.6,0xff5555,10);toast(msg+tr(' -1 nyawa',' -1 life'));updateHUD();
+ if(R.hearts<=0)onDefeat();
+}
+function fallDown(){
+ const P=R.P;R.hearts--;R.pl.risk=clamp(R.pl.risk+2,0,100);sfx('hurt');updateHUD();
+ if(R.hearts<=0){onDefeat();return;}
+ toast(tr('Jatuh ke dalam jurang! -1 nyawa','Fell into a pit! -1 life'));respawn();
+}
+function respawn(){const P=R.P;P.x=R.cp;P.y=0.05;P.vx=0;P.vy=0;P.inv=1.6;CAM.snap=true;}
+async function onDefeat(){
+ if(G.state!=='play')return;
+ G.state='cut';clearInput();sfx('bad');
+ const pl=R.pl;
+ pl.cash-=400;pl.risk=clamp(pl.risk+6,0,100);normalize(pl);updateHUD();
+ openModal(`<div class="fbBox"><div style="font-size:2.6rem">😵</div><div class="fbTitle bad">${tr('Tumbang!','Knocked Out!')}</div>
+ <div class="fbText">${tr('Nyawa anda habis. Kos rawatan dan kehilangan pendapatan menjejaskan kewangan anda. Tanpa perlindungan yang cukup, satu kejadian boleh membawa kesan besar. Anda akan bermula semula dari titik semak terakhir.','Your lives ran out. Treatment costs and lost income hurt your finances. Without enough protection, a single incident can have a big impact. You will restart from your last checkpoint.')}</div>
+ <div class="effects"><h4>${tr('Kesan kepada statistik','Effect on your stats')}</h4><div class="ef"><span>${tr('Wang Tunai','Cash')}</span><span class="n">-RM400</span></div><div class="ef"><span>${tr('Indeks Risiko','Risk Index')}</span><span class="n">+6</span></div></div>
+ <button class="btn green" id="dfOk" style="margin-top:14px;min-width:160px">${tr('Cuba Lagi','Try Again')}</button></div>`);
+ await new Promise(res=>{$('dfOk').onclick=res;});
+ closeModal();R.hearts=2;respawn();updateHUD();G.state='play';
+}
+
+/* ---------- Event risiko ---------- */
+function eventModal(pl,ev,opts,boss,wi){
+ return new Promise(res=>{
+  const col=boss?'#c0262f':WORLDS[wi].c;
+  openModal(`<div class="evHead" style="--c:${col}"><div class="evIco">${ev.icon}</div><div><div class="evTag">${esc(ev.t)}${boss?`<span class="bossTag">${tr('BOS','BOSS')}</span>`:''}</div><div class="who">${tr('Giliran','Turn')}: ${esc(pl.name)} · ${WORLDS[wi].name}</div></div></div>
+  <p class="evDesc">${ev.d}</p><div class="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="ltr l${i}">${'ABC'[i]}</span><span><b>${o.t}</b>${o.n?`<small>${o.n}</small>`:''}${o.need?`<em class="${meets(pl,o.need)?'have':'miss'}">${meets(pl,o.need)?tr('✓ Anda ada','✓ You have it'):tr('✗ Belum cukup','✗ Not enough yet')}: ${esc(needLabel(o.need))}</em>`:''}</span></button>`).join('')}</div>
+  <p class="small">${tr('Ini simulasi pembelajaran, bukan nasihat tuntutan sebenar. Manfaat bergantung pada terma dan syarat perlindungan.','This is a learning simulation, not real claims advice. Benefits depend on the terms and conditions of the cover.')}</p>`);
+  $('modalCard').querySelectorAll('.opt').forEach(b=>b.onclick=()=>res(opts[+b.dataset.i]));
+ });
+}
+function feedbackModal(res_,before,after,boss){
+ const T={good:[tr('Berjaya!','Success!'),'good','😄'],ok:[tr('Boleh Tahan','Not Bad'),'ok','🙂'],bad:[tr('Berisiko!','Risky!'),'bad','😟']}[res_.q];
+ const[c,s,i,pr,rk,hh]=res_.fx;
+ const money=(l,v)=>v?`<div class="ef"><span>${l}</span><span class="${v>0?'p':'n'}">${rms(v)}</span></div>`:'';
+ const idx=(l,v,inv)=>v?`<div class="ef"><span>${l}</span><span class="${(inv?v<0:v>0)?'p':'n'}">${v>0?'+':''}${v}</span></div>`:'';
+ const hrt=hh?`<div class="ef"><span>${tr('Nyawa','Lives')}</span><span class="${hh>0?'p':'n'}">${hh>0?'+':''}${hh} ❤️</span></div>`:'';
+ const newIns=res_.newIns?`<div class="newIns">🛡️ ${tr('Instrumen baharu','New instrument')}: <b>${iname(res_.newIns)}</b></div>`:'';
+ const win=boss&&res_.q==='good';
+ return new Promise(res=>{
+  openModal(`<div class="fbBox"><div style="font-size:2.6rem">${win?'🏆':T[2]}</div><div class="fbTitle ${T[1]}">${win?tr('Bos Ditewaskan!','Boss Defeated!'):T[0]}</div>
+  <div class="fbText">${res_.fb}</div>${newIns}
+  <div class="effects"><h4>${tr('Kesan kepada statistik','Effect on your stats')}</h4>${money(tr('Wang Tunai','Cash'),c)}${money(tr('Simpanan','Savings'),s)}${money(tr('Pelaburan','Investments'),i)}${idx(tr('Indeks Perlindungan','Protection Index'),pr,false)}${idx(tr('Indeks Risiko','Risk Index'),rk,true)}${hrt}
+  <div class="ef"><span>⭐ ${tr('Skor','Score')}</span><span class="${after>=before?'p':'n'}">${before} → ${after}</span></div></div>
+  <button class="btn green" id="fbOk" style="margin-top:14px;min-width:140px">OK</button></div>`);
+  $('fbOk').onclick=()=>{closeModal();res();};
+ });
+}
+async function runEvent(pend){
+ const r=R,pl=r.pl,ev=pend.ev,boss=pend.boss;
+ G.state='cut';clearInput();sfx('alert');
+ CAM.cut={x:boss?r.L.boss.x-3:r.P.x,y:boss?1.5:r.P.y};
+ await sleep(700);
+ G.state='modal';
+ const opts=shuffle(ev.o);
+ const o=await eventModal(pl,ev,opts,boss,r.wi);
+ const before=score(pl);
+ let fx=o.fx.slice(),fb=o.fb,q=o.q,ins=o.ins;
+ if(o.need&&!meets(pl,o.need)){fx=(ev.fail||DEFAULT_FAIL).slice();fb=ev.failMsg||tr('Anda belum memiliki perlindungan yang diperlukan, jadi kos terpaksa ditanggung sendiri.','You do not own the protection needed, so you must bear the cost yourself.');q='bad';ins=null;}
+ pl.cash+=fx[0];pl.sav+=fx[1];pl.inv+=fx[2];pl.prot+=fx[3];pl.risk+=fx[4];normalize(pl);
+ r.hearts=clamp(r.hearts+(fx[5]||0),0,5);
+ let newIns=null;if(ins){if(!pl.owned.has(ins))newIns=ins;pl.owned.add(ins);}
+ pl.log.push({ev:ev.t,choice:o.t,q});pl.cnt[q]++;r.events++;
+ updateHUD();
+ q==='bad'?sfx('bad'):sfx('good');
+ await feedbackModal({fx,fb,q,newIns},before,score(pl),boss);
+ CAM.cut=null;
+ if(boss&&r.L.boss&&r.L.boss.mesh){r.bossDefeat={t:0,good:q==='good'};}
+ if(pend.gate&&pend.gate.mesh){pend.gate.mesh.userData.field.material.color.set(0x44dd77);}
+ r.pending=null;
+ if(r.hearts<=0){G.state='play';onDefeat();return;}
+ G.state='play';
+}
+
+/* ---------- Tamat level ---------- */
+async function finishLevel(){
+ const r=R;if(!r||r.done)return;r.done=true;G.state='cut';clearInput();sfx('win');
+ const P=r.P,pl=r.pl;
+ for(let i=0;i<6;i++)setTimeout(()=>SPK.burst(P.x+(Math.random()-.5)*3,P.y+1+Math.random()*2,[0xffd23f,0xff5577,0x55ddff,0x7dff7d][i%4],14),i*160);
+ CAM.cut={x:P.x,y:P.y};await sleep(900);
+ pl.cash+=200;normalize(pl);updateHUD();
+ const W=WORLDS[r.wi];
+ openModal(`<div class="fbBox"><div style="font-size:2.6rem">🏁</div><div class="endTitle" style="font-size:1.6rem">${tr('Dunia','World')} ${r.wi+1} ${tr('Selesai!','Complete!')}</div>
+  <p style="margin-bottom:8px">${tr(`${esc(pl.name)} berjaya menamatkan <b>${W.name}</b>. Bonus misi: <b style="color:#47e08a">+RM200</b>`,`${esc(pl.name)} completed <b>${W.name}</b>. Mission bonus: <b style="color:#47e08a">+RM200</b>`)}</p>
+  <div class="stat3"><div><b>${r.got.coins}</b>${tr('Syiling','Coins')}</div><div><b>${r.got.picks}</b>${tr('Instrumen','Instruments')}</div><div><b>${r.hearts}</b>${tr('Nyawa tinggal','Lives left')}</div><div><b>${r.events}</b>Event</div><div><b>${r.got.stomps}</b>${tr('Risiko ditewaskan','Risks defeated')}</div><div><b>${score(pl)}</b>${tr('Skor semasa','Current score')}</div></div>
+  <div class="effects"><h4>${tr('Status kewangan','Financial status')}</h4><div class="ef"><span>${tr('Wang Tunai','Cash')}</span><span>${rm(pl.cash)}</span></div><div class="ef"><span>${tr('Simpanan','Savings')}</span><span>${rm(pl.sav)}</span></div><div class="ef"><span>${tr('Pelaburan','Investments')}</span><span>${rm(pl.inv)}</span></div><div class="ef"><span>${tr('Perlindungan / Risiko','Protection / Risk')}</span><span>${Math.round(pl.prot)} / ${Math.round(pl.risk)}</span></div></div>
+  <button class="btn green" id="fdOk" style="margin-top:14px;min-width:160px">${tr('Teruskan','Continue')}</button></div>`);
+ await new Promise(res=>{$('fdOk').onclick=res;});
+ closeModal();CAM.cut=null;r.resolve();
+}
+
+/* ============================================================
+   KEMASKINI, ANIMASI & PAPARAN
+   ============================================================ */
+let last=performance.now();
+function frame(now){
+ requestAnimationFrame(frame);
+ const dt=Math.min(0.05,(now-last)/1000);last=now;
+ if(R&&G.state==='play'&&!G.paused){R.t+=dt;if(R.pending&&!R.busy){R.busy=true;const p=R.pending;runEvent(p).finally(()=>{if(R)R.busy=false;});}else{const n=2;for(let i=0;i<n&&G.state==='play'&&!R.pending;i++)stepPhysics(dt/n);}}
+ updateCam(dt);animate(dt);
+ if(ok3D){SPK.update(dt);renderer.render(scene,camera);}else render2D();
+ if(R&&G.state==='play')updateProgress();
+}
+function updateCam(dt){
+ const asp=innerWidth/innerHeight,zm=asp<1?1.75:asp<1.45?1.25:1;
+ let tx,ty,tz=14.5*zm;
+ if(CAM.cut){tx=CAM.cut.x;ty=CAM.cut.y+1.0;tz=7.5*zm;}
+ else if(R&&R.P&&G.state!=='menu'&&G.state!=='select'){tx=R.P.x+R.P.face*2.2;ty=Math.max(2.1,R.P.y+1.2);}
+ else{CAM.att+=dt*2.2;const span=Math.max(10,((SCN.L&&SCN.L.len)||60)-30);tx=8+(CAM.att%span);ty=2.4;}
+ const k=Math.min(1,dt*(CAM.snap?100:4.5));CAM.snap=false;
+ CAM.x+=(tx-CAM.x)*k;CAM.y+=(ty-CAM.y)*k;CAM.z+=(tz-CAM.z)*Math.min(1,dt*4);
+ if(ok3D){camera.position.set(CAM.x,CAM.y+2.2,CAM.z);camera.lookAt(CAM.x,CAM.y,0);sun.position.set(CAM.x+9,18,12);sun.target.position.set(CAM.x,0,0);}
+}
+function animate(dt){
+ const L=SCN.L;if(!L||!ok3D)return;const t=performance.now()/1000;
+ for(const c of L.coins)if(c.mesh&&!c.got)c.mesh.rotation.y=t*4+c.x;
+ for(const p of L.picks)if(p.mesh&&!p.got){p.mesh.position.y=p.y+Math.sin(t*3+p.x)*.18;p.mesh.userData.spin.rotation.y=Math.sin(t*2)*.5;}
+ for(const h of L.hearts)if(h.mesh&&!h.got){h.mesh.position.y=h.y+Math.sin(t*3+h.x)*.15;h.mesh.rotation.y=t*2.5;}
+ for(const j of L.jars)if(j.mesh&&!j.got){j.mesh.position.y=j.y+Math.sin(t*3+j.x)*.12;j.mesh.rotation.y=Math.sin(t*2)*.6;}
+ for(const w of L.walkers)if(w.mesh&&w.alive){w.mesh.position.set(w.x,w.y+Math.abs(Math.sin(t*6+w.x))*.12,0);w.mesh.rotation.y=w.dir>0?.9:-.9;}
+ for(const b of L.blocks){if(b.mesh){b.bump=Math.max(0,b.bump-dt);b.mesh.position.y=b.y+.5+Math.sin(b.bump/.25*Math.PI)*.3;}}
+ for(const g of L.gates)if(g.mesh){const f=g.mesh.userData.field;if(!g.done)f.material.opacity=.15+Math.sin(t*4)*.08;else f.material.opacity=.1;}
+ for(const f of L.flags)if(f.mesh)f.mesh.userData.fl.position.y=2.2+Math.sin(t*3+f.x)*.05;
+ if(SCN.goal)SCN.goal.userData.fl.rotation.y=Math.sin(t*2)*.3;
+ if(L.boss&&L.boss.mesh){
+  const bm=L.boss.mesh;
+  if(R&&R.bossDefeat){const d=R.bossDefeat;d.t+=dt;const k=Math.max(0,1-d.t/1.2);bm.scale.setScalar(Math.max(0.001,k));bm.rotation.y+=dt*10;bm.position.y=(1-k)*3;if(d.t<0.05&&d.good)for(let i=0;i<5;i++)SPK.burst(L.boss.x,2.5,[0xffd23f,0xff5577,0x55ddff][i%3],16);if(k<=0.001){bm.visible=false;R.bossDefeat=null;}}
+  else if(!L.boss.done||(R&&!R.bossDefeat&&bm.visible)){bm.position.y=Math.abs(Math.sin(t*2))*.25;bm.rotation.y=-.35+Math.sin(t)*.2;}
+ }
+ // pemain
+ if(SCN.player&&R&&R.P){
+  const P=R.P,m=SCN.player,u=m.userData;m.visible=true;
+  m.position.set(P.x,P.y,0);
+  m.rotation.y+=((P.face>0?1.1:-1.1)-m.rotation.y)*Math.min(1,dt*14);
+  u.phase+=dt*(6+P.run*9);
+  if(!P.onGround){u.legL.rotation.x=-.7;u.legR.rotation.x=.6;u.armL.rotation.x=-2.4;u.armR.rotation.x=-2.2;}
+  else if(P.run>.05){const s=Math.sin(u.phase)*.95*P.run;u.legL.rotation.x=s;u.legR.rotation.x=-s;u.armL.rotation.x=-s;u.armR.rotation.x=s;}
+  else{u.legL.rotation.x=u.legR.rotation.x=0;u.armL.rotation.x=u.armR.rotation.x=0;u.body.scale.y=1+Math.sin(t*3)*.03;}
+  const sq=P.onGround?1:1+clamp(P.vy/40,-.12,.12);m.scale.set(1/Math.sqrt(sq),sq,1/Math.sqrt(sq));
+  m.visible=P.inv<=0||Math.floor(t*14)%2===0;
+ }
+}
+
+/* ---------- Paparan 2D (sandaran tanpa Three.js) ---------- */
+function sc2D(){return Math.min(innerHeight/11,58);}
+function render2D(){
+ const cv=$('c2'),ctx=cv.getContext('2d'),w=cv.width,h=cv.height,sc=sc2D(),L=SCN.L;if(!L)return;
+ const W=WORLDS[L.wi],gy=h*0.72,oy=Math.max(0,CAM.y-2.4);
+ const X=x=>(x-CAM.x)*sc+w/2,Y=y=>gy-(y-oy)*sc;
+ const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,W.sky[0]);g.addColorStop(1,W.sky[1]);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+ for(const s of L.solids){if(s.kind==='wall')continue;if(s.kind==='block')continue;ctx.fillStyle='#'+W.dirt.toString(16).padStart(6,'0');ctx.fillRect(X(s.x),Y(s.y+s.h),s.w*sc,s.h*sc);ctx.fillStyle='#'+W.ground.toString(16).padStart(6,'0');ctx.fillRect(X(s.x),Y(s.y+s.h),s.w*sc,Math.min(10,s.h*sc));}
+ ctx.font=(sc*.7)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+ for(const b of L.blocks){ctx.fillStyle=b.used?'#888':'#f7b500';ctx.fillRect(X(b.x),Y(b.y+1),sc,sc);ctx.fillStyle='#fff';ctx.fillText(b.used?'':'?',X(b.x+.5),Y(b.y+.5));}
+ ctx.fillStyle='#ffc928';for(const c of L.coins)if(!c.got){ctx.beginPath();ctx.arc(X(c.x),Y(c.y),sc*.28,0,7);ctx.fill();}
+ for(const p of L.picks)if(!p.got)ctx.fillText(INS[p.id].ico,X(p.x),Y(p.y));
+ for(const q of L.hearts)if(!q.got)ctx.fillText('❤️',X(q.x),Y(q.y));
+ for(const q of L.jars)if(!q.got)ctx.fillText('🐷',X(q.x),Y(q.y));
+ for(const q of L.walkers)if(q.alive)ctx.fillText('👾',X(q.x),Y(q.y+.4));
+ for(const s of L.spikes){ctx.fillStyle='#e53935';ctx.fillRect(X(s.x),Y(s.y+s.h),s.w*sc,s.h*sc);}
+ for(const q of L.gates)ctx.fillText(q.done?'✅':'⚠️',X(q.x),Y(2.5));
+ for(const q of L.flags)ctx.fillText('🚩',X(q.x),Y(1));
+ if(L.boss&&!(R&&R.bossDefeat)&&(!L.boss.done||true)&&!(L.boss.done&&L.boss.mesh&&false))ctx.fillText(L.boss.done?'':'👹',X(L.boss.x),Y(1.8));
+ ctx.fillText('🏠',X(L.end),Y(1.5));
+ if(R&&R.P){const P=R.P;ctx.fillStyle=R.pl.color;if(P.inv<=0||Math.floor(performance.now()/70)%2)ctx.fillRect(X(P.x-P.w/2),Y(P.y+P.h),P.w*sc,P.h*sc);}
+}
+
+/* ---------- HUD ---------- */
+function toggleDash(){$('dash').classList.toggle('hidden');updateDash();}
+function updateProgress(){const L=R.L;$('prog').firstElementChild.style.width=clamp(R.P.x/L.end*100,0,100)+'%';}
+function updateHUD(){
+ if(!R)return;const pl=R.pl,s=score(pl);
+ $('hearts').textContent='❤️'.repeat(R.hearts)+'🖤'.repeat(Math.max(0,3-R.hearts));
+ $('coinBox').textContent='🪙 '+pl.coins;
+ $('badge').innerHTML=`<span style="color:${pl.color}">●</span> ${esc(pl.name)} · ${tr('Dunia','World')} ${R.wi+1}: ${WORLDS[R.wi].name}`;
+ $('strip').textContent=`💰 ${rm(pl.cash)}  🏦 ${rm(pl.sav)}  🛡️ ${Math.round(pl.prot)}  ⚠️ ${Math.round(pl.risk)}  ⭐ ${s}`;
+ updateDash();
+}
+function updateDash(){
+ if(!R||$('dash').classList.contains('hidden'))return;const p=R.pl,s=score(p);
+ const st=s>=80?[tr('Sihat','Healthy'),'#1fa65a']:s>=50?[tr('Sederhana','Moderate'),'#c98b00']:[tr('Berisiko','At Risk'),'#d63a3a'];
+ const neg=v=>v<0?' class="neg"':'';
+ const meter=(l,v,c)=>`<div class="meter"><small><span>${l}</span><b>${Math.round(v)} / 100</b></small><div class="m"><i style="width:${v}%;background:${c}"></i></div></div>`;
+ const own=[...p.owned];
+ $('dash').innerHTML=`<div class="dh"><div class="av" style="background:${p.color}">${esc(p.name[0]||'?').toUpperCase()}</div><div><b>${esc(p.name)}</b><small>${tr('Pemain','Player')} ${p.idx+1}</small></div><div class="star">⭐ ${tr('Skor','Score')}: ${s}</div></div>
+ <div class="row"><span>💰 ${tr('Wang Tunai','Cash')}</span><b${neg(p.cash)}>${rm(p.cash)}</b></div><div class="row"><span>🏦 ${tr('Simpanan','Savings')}</span><b>${rm(p.sav)}</b></div><div class="row"><span>📈 ${tr('Pelaburan','Investments')}</span><b>${rm(p.inv)}</b></div>
+ ${meter('🛡️ '+tr('Indeks Perlindungan','Protection Index'),p.prot,'#4aa3ff')}${meter('⚠️ '+tr('Indeks Risiko','Risk Index'),p.risk,'#ff6b6b')}
+ <div class="ins"><h4>${tr('Instrumen Aktif','Active Instruments')} (${own.length}/${Object.keys(INS).length})</h4>${own.length?own.map(k=>`<div>${iname(k)}</div>`).join(''):`<div class="none">${tr('Belum ada. Kutip perisai 🛡️ dalam level!','None yet. Collect shields 🛡️ in the level!')}</div>`}</div>
+ <div class="status" style="background:${st[1]}">${tr('Status Kewangan','Financial Status')}: ${st[0]}</div>`;
+}
+let hintT=0;
+function showHint(text){const h=$('hint');h.textContent=text;h.classList.remove('hidden');h.style.opacity=1;clearTimeout(hintT);hintT=setTimeout(()=>{h.style.opacity=0;setTimeout(()=>h.classList.add('hidden'),700);},5200);}
+function openModal(html){$('modalCard').innerHTML=html;$('modal').classList.remove('hidden');$('modalCard').scrollTop=0;}
+function closeModal(){$('modal').classList.add('hidden');}
+
+function pauseGame(){if(G.paused)return;G.paused=true;clearInput();renderPause();}
+function renderPause(){
+ openModal(`<div class="fbBox"><div class="endTitle" style="font-size:1.6rem">⏸ ${tr('Permainan Dijeda','Game Paused')}</div>
+ <p style="margin:8px 0 12px">${tr('Kawalan','Controls')}: <span class="kbd">←</span><span class="kbd">→</span> / <span class="kbd">A</span><span class="kbd">D</span> ${tr('bergerak','move')} · <span class="kbd">Space</span> / <span class="kbd">↑</span> ${tr('lompat (tahan lama = lompat tinggi)','jump (hold = higher jump)')} · <span class="kbd">C</span> dashboard</p>
+ <div class="btns"><button class="btn green" id="pgBack">${tr('Sambung','Resume')}</button><button class="btn purple" id="pgHow">${tr('❓ Cara Bermain','❓ How to Play')}</button><button class="btn blue" id="pgLang">${tr('🌐 Bahasa: BM  (tukar ke EN)','🌐 Language: EN  (switch to BM)')}</button><button class="btn grey" id="pgSnd">${tr('Bunyi','Sound')}: ${S.sound?tr('HIDUP','ON'):tr('MATI','OFF')}</button><button class="btn orange" id="pgMenu">${tr('Menu Utama','Main Menu')}</button></div></div>`);
+ $('pgBack').onclick=()=>{closeModal();G.paused=false;};
+ $('pgHow').onclick=()=>openHow();
+ $('pgLang').onclick=()=>setLang(LANG==='en'?'ms':'en');
+ $('pgSnd').onclick=()=>{S.sound=!S.sound;lsSet('prq_set',JSON.stringify(S));renderPause();};
+ $('pgMenu').onclick=()=>location.reload();
+}
+
+/* ============================================================
+   ALIRAN PERMAINAN
+   ============================================================ */
+function setupRun(pl,wi){
+ R={wi,pl,L:null,P:{x:0,y:0.05,vx:0,vy:0,w:0.7,h:1.1,face:1,onGround:true,inv:0,coy:0,buf:0,jumping:false,run:0},hearts:3,cp:0,t:0,got:{coins:0,picks:0,jars:0,stomps:0},events:0,pending:null,busy:false,resolve:null,done:false,bossDefeat:null};
+ R.L=buildScene(wi,G.fast);R.P.x=R.L.spawn;R.cp=R.L.spawn;
+ if(ok3D&&SCN.player){const old=SCN.player;SCN.grp.remove(old);const nm=mkPlayerMesh(pl.color,pl.name);SCN.grp.add(nm);SCN.player=nm;}
+ CAM.snap=true;CAM.cut=null;$('hud').classList.remove('hidden');$('dash').classList.add('hidden');updateHUD();
+}
+async function playLevel(pl,wi){
+ clearInput();setupRun(pl,wi);G.state='intro';G.paused=false;
+ const W=WORLDS[wi];
+ openModal(`<div class="fbBox"><div style="font-size:2.4rem">${W.ico}</div><div class="endTitle" style="font-size:1.5rem">${tr('Dunia','World')} ${wi+1}: ${W.name}</div>
+  <p style="margin:6px 0"><b style="color:${pl.color}">${tr('Giliran','Turn')}: ${esc(pl.name)}</b>${G.players.length>1?tr(' (serahkan peranti kepada pemain ini)',' (hand the device to this player)'):''}</p>
+  <div class="fbText"><b>${tr('Misi','Mission')}:</b> ${wtxt(wi,'mission')}<br><b>${tr('Topik Bab 7','Chapter 7 topics')}:</b> ${wtxt(wi,'topics')}<br><b>${tr('Bos','Boss')}:</b> ${wtxt(wi,'boss')}</div>
+  <p class="small" style="margin:0 0 10px;text-align:left">${tr('Kutip syiling 🪙 dan perisai perlindungan 🛡️ (pecahkan blok <b>?</b> dari bawah), pijak risiko ungu dari atas, lalui pintu ⚠ untuk event, kalahkan bos di hujung dan sampai ke rumah tamat. Jatuh ke dalam jurang atau terkena bahaya = hilang nyawa.','Collect coins 🪙 and protection shields 🛡️ (break <b>?</b> blocks from below), stomp purple risks from above, walk through ⚠ gates for events, defeat the boss at the end and reach the finish house. Falling into a pit or touching a hazard = lose a life.')}</p>
+  <p class="small" style="margin:0 0 10px"><span class="kbd">←</span><span class="kbd">→</span> ${tr('bergerak','move')} · <span class="kbd">Space</span> ${tr('lompat','jump')} · <span class="kbd">C</span> dashboard · <span class="kbd">Esc</span> ${tr('jeda','pause')}</p>
+  <div class="row2"><button class="btn green" id="inGo" style="min-width:160px">${tr('Mula!','Start!')}</button><button class="btn purple" id="inHow">${tr('❓ Cara Bermain','❓ How to Play')}</button></div></div>`);
+ $('inHow').onclick=()=>openHow();
+ await new Promise(res=>{$('inGo').onclick=res;});
+ closeModal();G.state='play';showHint(tr('Kumpul Syiling & Item Perlindungan!','Collect Coins & Protection Items!'));
+ await new Promise(res=>{R.resolve=res;});
+}
+function selectScreen(){
+ return new Promise(res=>{
+  G.state='select';R=null;buildScene(G.world,G.fast);CAM.snap=true;CAM.att=0;$('hud').classList.add('hidden');
+  const cards=WORLDS.map((W,i)=>`<div class="wc ${i>G.world?'lock':''} ${i===G.world?'next':''}" style="--c:${W.c}"><span class="ico">${W.ico}</span><b>${i+1}. ${W.name}</b><span>${wtxt(i,'topics')}</span><span class="st">${i<G.world?tr('✅ Selesai','✅ Done'):i===G.world?tr('▶ Seterusnya','▶ Next'):tr('🔒 Terkunci','🔒 Locked')}</span></div>`).join('');
+  const lb=G.players.slice().sort((a,b)=>score(b)-score(a)).map(p=>`<div><span class="dot" style="background:${p.color}"></span>${esc(p.name)}<span style="opacity:.7;font-size:.8rem">🛡️ ${p.owned.size} ${tr('instrumen','instruments')}</span><span class="sc">⭐ ${score(p)}</span></div>`).join('');
+  openModal(`<div class="endTitle">${tr('🗺️ Pilih Dunia','🗺️ Choose a World')}</div><p class="small" style="margin:0 0 4px">${tr('Setiap dunia mewakili satu topik utama dalam Bab 7. Tamatkan dunia mengikut turutan.','Each world covers a main topic in Chapter 7. Complete the worlds in order.')}</p>
+   <div class="worlds">${cards}</div><div class="lb">${lb}</div>
+   <div class="row2"><button class="btn green" id="wsGo">${tr('Mula Dunia','Start World')} ${G.world+1}</button><button class="btn purple" id="wsHow">${tr('❓ Cara Bermain','❓ How to Play')}</button><button class="btn grey" id="wsMenu">${tr('Menu Utama','Main Menu')}</button></div>`);
+  $('modalCard').classList.add('wide');
+  $('wsHow').onclick=()=>openHow();
+  $('wsGo').onclick=()=>{$('modalCard').classList.remove('wide');closeModal();res();};$('wsMenu').onclick=()=>location.reload();
+ });
+}
+async function worldSummary(wi){
+ const W=WORLDS[wi];
+ const lb=G.players.slice().sort((a,b)=>score(b)-score(a)).map((p,k)=>`<div><span class="dot" style="background:${p.color}"></span>${k===0&&G.players.length>1?'🏆 ':''}${esc(p.name)}<span class="sc">⭐ ${score(p)}</span></div>`).join('');
+ openModal(`<div class="fbBox"><div style="font-size:2.4rem">🎉</div><div class="endTitle" style="font-size:1.5rem">${W.name} ${tr('Ditamatkan!','Completed!')}</div><div class="lb">${lb}</div>
+  <button class="btn green" id="wsNext" style="min-width:160px">${wi<4?tr('Ke Dunia Seterusnya','To the Next World'):tr('Lihat Pengakhiran','See the Ending')}</button></div>`);
+ await new Promise(res=>{$('wsNext').onclick=res;});closeModal();
+}
+async function mainFlow(){
+ while(G.world<5){
+  await selectScreen();
+  for(const pl of G.players)await playLevel(pl,G.world);
+  R=null;CAM.cut=null;
+  await worldSummary(G.world);
+  G.world++;saveGame();
+ }
+ lsDel('prq_save_v1');R=null;G.state='end';$('hud').classList.add('hidden');buildScene(4,false);showEnd();
+}
+function showEnd(){
+ const ranked=G.players.slice().sort((a,b)=>score(b)-score(a)),best=ranked[0];
+ const cards=ranked.map((p,k)=>{const s=score(p),e=ending(s);
+  return`<div class="pcard ${e.cls}"><h3><span>${k===0&&G.players.length>1?'🏆 ':''}${esc(p.name)}</span><span>⭐ ${s}</span></h3>
+  <p><b>${e.ico} ${e.name}</b>: ${e.msg}</p>
+  <p>💰 ${rm(p.cash)} · 🏦 ${rm(p.sav)} · 📈 ${rm(p.inv)}<br>🛡️ ${tr('Perlindungan','Protection')} ${Math.round(p.prot)} · ⚠️ ${tr('Risiko','Risk')} ${Math.round(p.risk)} · 🪙 ${p.coins} ${tr('syiling','coins')}</p>
+  <p>${tr('Keputusan','Decisions')}: 😄 ${p.cnt.good} · 🙂 ${p.cnt.ok} · 😟 ${p.cnt.bad} · ${tr('Instrumen','Instruments')}: ${p.owned.size}/${Object.keys(INS).length}</p></div>`;}).join('');
+ openModal(`<div class="endTitle">${tr('🏆 TAHNIAH!','🏆 CONGRATULATIONS!')}</div><p style="text-align:center;margin-bottom:6px">${tr('Permainan tamat.','Game over.')}${G.players.length>1?tr(` Pemenang: <b style="color:#ffd23f">${esc(best.name)}</b> dengan skor ${score(best)}.`,` Winner: <b style="color:#ffd23f">${esc(best.name)}</b> with a score of ${score(best)}.`):tr(' Berikut keputusan akhir anda.',' Here is your final result.')}</p>
+  ${cards}<div class="btns" style="margin-top:10px"><button class="btn blue" id="bLesson">${tr('Lihat Ringkasan Pelajaran','View Lesson Summary')}</button><button class="btn green" id="bAgain">${tr('Main Semula','Play Again')}</button></div>`);
+ $('bAgain').onclick=()=>location.reload();$('bLesson').onclick=showLesson;
+}
+function showLesson(){
+ const per=G.players.map(p=>{
+  const miss=Object.keys(INS).filter(k=>!p.owned.has(k)),bad=p.log.filter(l=>l.q==='bad');
+  return`<h4>${esc(p.name)}</h4><ul><li><span class="have2">${tr('Dimiliki','Owned')}:</span> ${[...p.owned].map(k=>iname(k)).join(', ')||tr('tiada','none')}</li>
+   <li><span class="miss2">${tr('Belum dimiliki','Not owned')}:</span> ${miss.map(k=>iname(k)).join(', ')||tr('semua dimiliki 🎉','all owned 🎉')}</li>
+   ${bad.length?`<li><span class="miss2">${tr('Keputusan berisiko','Risky decisions')}:</span> ${bad.map(l=>esc(l.ev)).join('; ')}</li>`:`<li>${tr('Tiada keputusan berisiko. Syabas!','No risky decisions. Well done!')}</li>`}</ul>`;}).join('');
+ openModal(`<div class="endTitle" style="font-size:1.5rem">${tr('📘 Ringkasan Pelajaran Bab 7','📘 Chapter 7 Lesson Summary')}</div>
+  <div class="lesson"><h4>${tr('Prinsip utama','Key principles')}</h4><ul>${LANG==='en'?'<li>Build an emergency fund before risks arrive.</li><li>Layer your protection: employer, government/social schemes and personal cover.</li><li>Read the terms and check what is covered before claiming.</li><li>High, guaranteed returns are a scam warning sign.</li><li>Plan retirement and education early, and do not rely on a single source.</li>':'<li>Sediakan dana kecemasan sebelum risiko tiba.</li><li>Gabungkan lapisan perlindungan: majikan, skim kerajaan/sosial dan peribadi.</li><li>Baca terma dan semak tanggungan sebelum menuntut.</li><li>Pulangan tinggi dan terjamin ialah amaran penipuan.</li><li>Rancang persaraan dan pendidikan lebih awal, dan jangan bergantung pada satu sumber sahaja.</li>'}</ul></div>
+  <div class="lesson"><h4>${tr('Instrumen dalam permainan','Instruments in the game')}</h4><ul>${Object.keys(INS).map(k=>`<li><b>${iname(k)}</b>: ${idesc(k)}</li>`).join('')}</ul></div>
+  <div class="lesson">${per}</div>
+  <div class="btns"><button class="btn blue" id="bBack">${tr('Kembali','Back')}</button><button class="btn green" id="bAgain2">${tr('Main Semula','Play Again')}</button></div>`);
+ $('bAgain2').onclick=()=>location.reload();$('bBack').onclick=showEnd;
+}
+
+/* ============================================================
+   BAHASA, CARA BERMAIN & AUDIO
+   ============================================================ */
+const I18N={
+ tag:['Lindungi Diri. Urus Risiko. Capai Masa Depan.','Protect Yourself. Manage Risk. Reach Your Future.'],
+ bSingle:['Main Permainan','Play Game'],
+ bMulti:['Multiplayer (Local)','Multiplayer (Local)'],
+ bHow:['❓ Cara Bermain','❓ How to Play'],
+ bSet:['Tetapan','Settings'],
+ cntLbl:['Bilangan pemain:','Number of players:'],
+ bStart:['Mulakan Pengembaraan','Start the Adventure'],
+ small:['Game platformer 3D simulasi pengurusan risiko diri berasaskan Bab 7: Instrumen Pengurusan Risiko Diri.<br>Simulasi pendidikan sahaja, bukan nasihat kewangan. Semak terma dan syarat terkini sebelum membuat keputusan sebenar.','A 3D platformer simulating personal risk management, based on Chapter 7: Personal Risk Management Instruments.<br>Educational simulation only, not financial advice. Check the latest terms and conditions before making real decisions.']
+};
+function applyLang(){
+ document.documentElement.lang=LANG==='en'?'en':'ms';
+ document.querySelectorAll('[data-i]').forEach(el=>{const v=I18N[el.dataset.i];if(v)el.innerHTML=v[LANG==='en'?1:0];});
+ $('bFast').textContent=tr('Mod Pantas: ','Fast Mode: ')+(G.fast?tr('HIDUP','ON'):tr('MATI','OFF'));
+ $('bLang').textContent=tr('🌐 Bahasa: BM  (tukar ke EN)','🌐 Language: EN  (switch to BM)');
+ $('bCont').textContent=tr('Sambung Permainan','Continue Game');
+ $('bDash').title='Dashboard (C)';$('bPause').title=tr('Jeda (Esc)','Pause (Esc)');$('bHow2').title=tr('Cara Bermain','How to Play');
+ buildNames();
+}
+function setLang(l){
+ LANG=l==='en'?'en':'ms';S.lang=LANG;lsSet('prq_set',JSON.stringify(S));TTS.stop();applyLang();
+ if(R)updateHUD();
+ if(!$('how').classList.contains('hidden'))renderHow();
+ if(G.paused)renderPause();
+}
+/* ---------- Audio penerangan (Web Speech API) ---------- */
+const TTS={on:false,tok:0,rate:1,voices:[],sup:('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window),
+ refresh(){if(!this.sup)return;try{const v=speechSynthesis.getVoices();if(v&&v.length)this.voices=v;}catch(e){}},
+ voice(){
+  const want=LANG==='en'?['en-gb','en-us','en-au','en-in','en']:['ms-my','ms','id-id','id'];
+  const norm=v=>(v.lang||'').replace('_','-').toLowerCase();
+  for(const w of want){const v=this.voices.find(x=>norm(x)===w)||this.voices.find(x=>norm(x).startsWith(w));if(v)return v;}
+  return null;
+ },
+ say(i,tok){
+  if(!this.on||tok!==this.tok)return;
+  const H=HOW[LANG];if(i>=H.length){this.stop();return;}
+  hlHow(i);
+  const u=new SpeechSynthesisUtterance(H[i].say);const v=this.voice();
+  if(v){u.voice=v;u.lang=v.lang;}else u.lang=LANG==='en'?'en-GB':'ms-MY';
+  u.rate=this.rate;
+  u.onend=()=>{if(this.on&&tok===this.tok)this.say(i+1,tok);};
+  u.onerror=()=>{if(this.on&&tok===this.tok)this.say(i+1,tok);};
+  try{speechSynthesis.speak(u);}catch(e){this.stop();}
+ },
+ start(){
+  if(!this.sup){voiceNote();return;}
+  this.refresh();this.on=true;const tok=++this.tok;
+  try{speechSynthesis.cancel();}catch(e){}
+  setTimeout(()=>this.say(0,tok),80);playBtn();voiceNote();
+ },
+ stop(){this.on=false;this.tok++;try{if(this.sup)speechSynthesis.cancel();}catch(e){}hlHow(-1);playBtn();}
+};
+if(TTS.sup){TTS.refresh();try{speechSynthesis.onvoiceschanged=()=>{TTS.refresh();voiceNote();};}catch(e){}}
+function hlHow(i){document.querySelectorAll('#howCard .hs').forEach((el,k)=>{el.classList.toggle('hl',k===i);if(k===i)el.scrollIntoView({block:'nearest',behavior:'smooth'});});}
+function playBtn(){const b=$('hwPlay');if(b)b.textContent=TTS.on?tr('⏹ Henti Audio','⏹ Stop Audio'):tr('🔊 Dengar Penerangan','🔊 Listen to the Guide');}
+function voiceNote(){
+ const el=$('hwVoice');if(!el)return;
+ if(!TTS.sup){el.textContent=tr('Pelayar atau peranti ini tidak menyokong audio penerangan. Cuba Chrome, Edge atau Safari.','This browser or device does not support the audio guide. Try Chrome, Edge or Safari.');return;}
+ TTS.refresh();const v=TTS.voice();
+ if(!v){el.textContent=tr('Suara Bahasa Melayu tidak dijumpai pada peranti ini, jadi suara lalai peranti akan digunakan. Anda boleh pasang suara Melayu dalam tetapan teks-ke-ucapan peranti.','No Malay voice was found on this device, so the default voice will be used. You can install a Malay voice in the device text-to-speech settings.');if(LANG==='en')el.textContent='No English voice was found on this device, so the default voice will be used.';return;}
+ const lang=(v.lang||'').toLowerCase();
+ el.textContent='🔈 '+v.name+' ('+v.lang+')'+((LANG==='ms'&&!lang.startsWith('ms'))?tr(' · menggunakan suara Indonesia yang hampir sama dengan BM',' · using an Indonesian voice, close to Malay'):'');
+}
+function renderHow(){
+ const H=HOW[LANG];
+ $('howCard').innerHTML=`<div class="endTitle" style="font-size:1.5rem">${tr('❓ Cara Bermain','❓ How to Play')}</div>
+ <div class="row2" style="margin:0 0 6px"><button class="btn purple" id="hwPlay"></button><button class="btn grey" id="hwRate"></button><button class="btn blue" id="hwLang">${tr('🌐 Bahasa: BM  (tukar ke EN)','🌐 Language: EN  (switch to BM)')}</button></div>
+ <p class="small" id="hwVoice" style="margin:0 0 6px"></p>
+ ${H.map((x,i)=>`<div class="hs" id="hs${i}"><h4>${x.ico} ${x.h}</h4><ul>${x.p.map(t=>`<li>${t}</li>`).join('')}</ul></div>`).join('')}
+ <div class="row2"><button class="btn green" id="hwClose" style="min-width:140px">${tr('Tutup','Close')}</button></div>`;
+ playBtn();rateBtn();voiceNote();
+ $('hwPlay').onclick=()=>{if(TTS.on)TTS.stop();else TTS.start();};
+ $('hwRate').onclick=()=>{TTS.rate=TTS.rate===1?0.8:TTS.rate===0.8?1.2:1;rateBtn();if(TTS.on)TTS.start();};
+ $('hwLang').onclick=()=>setLang(LANG==='en'?'ms':'en');
+ $('hwClose').onclick=closeHow;
+}
+function rateBtn(){const b=$('hwRate');if(b)b.textContent=tr('Kelajuan','Speed')+': '+TTS.rate+'x';}
+function openHow(){renderHow();$('how').classList.remove('hidden');$('howCard').scrollTop=0;}
+function closeHow(){TTS.stop();$('how').classList.add('hidden');}
+
+/* ============================================================
+   MENU
+   ============================================================ */
+let menuCount=1;
+function buildNames(){
+ const old=[...document.querySelectorAll('#names input')].map(e=>e.value);
+ $('names').innerHTML=Array.from({length:4},(_,i)=>`<div class="${i>=menuCount?'hidden':''}"><label>${tr('Pemain','Player')} ${i+1}</label><input maxlength="12" value="${DEF_NAMES[i]}" style="border-color:${COLORS[i]}"></div>`).join('');
+ document.querySelectorAll('#names input').forEach((e,i)=>{if(old[i]!==undefined)e.value=old[i];});
+ document.querySelectorAll('#countRow button').forEach(b=>b.classList.toggle('sel',+b.dataset.n===menuCount));
+ $('countRow').classList.toggle('hidden',menuCount===1);
+}
+function openSetup(n){menuCount=n;buildNames();$('setup').classList.remove('hidden');}
+$('bSingle').onclick=()=>openSetup(1);
+$('bMulti').onclick=()=>openSetup(menuCount>1?menuCount:2);
+document.querySelectorAll('#countRow button').forEach(b=>b.onclick=()=>{menuCount=+b.dataset.n;buildNames();});
+$('bFast').onclick=()=>{G.fast=!G.fast;applyLang();};
+$('bHow').onclick=()=>openHow();
+$('bLang').onclick=()=>setLang(LANG==='en'?'ms':'en');
+function openSettings(){
+ const tl=()=>S.touch==='auto'?tr('AUTO','AUTO'):S.touch==='on'?tr('HIDUP','ON'):tr('MATI','OFF');
+ openModal(`<div class="endTitle" style="font-size:1.5rem">${tr('⚙️ Tetapan','⚙️ Settings')}</div><div class="btns">
+  <button class="btn grey" id="stSnd"></button>
+  <button class="btn grey" id="stTouch"></button>
+  <button class="btn blue" id="stLang"></button>
+  <button class="btn orange" id="stDel">${tr('Padam simpanan permainan','Delete saved game')}</button>
+  <button class="btn green" id="stOk">${tr('Selesai','Done')}</button></div>
+  <p class="small">${tr('Mod Pantas: level lebih pendek (satu event + bos setiap dunia), sesuai untuk demonstrasi di kelas.','Fast Mode: shorter levels (one event + boss per world), great for classroom demonstrations.')}</p>`);
+ const upd=()=>{$('stSnd').textContent=tr('Bunyi: ','Sound: ')+(S.sound?tr('HIDUP','ON'):tr('MATI','OFF'));$('stTouch').textContent=tr('Butang sentuh: ','Touch buttons: ')+tl();$('stLang').textContent=tr('🌐 Bahasa: BM  (tukar ke EN)','🌐 Language: EN  (switch to BM)');};
+ upd();
+ $('stSnd').onclick=()=>{S.sound=!S.sound;lsSet('prq_set',JSON.stringify(S));upd();};
+ $('stTouch').onclick=()=>{S.touch=S.touch==='auto'?'on':S.touch==='on'?'off':'auto';lsSet('prq_set',JSON.stringify(S));applyTouchSetting();upd();};
+ $('stLang').onclick=()=>{setLang(LANG==='en'?'ms':'en');openSettings();};
+ $('stDel').onclick=()=>{lsDel('prq_save_v1');$('bCont').classList.add('hidden');$('stDel').textContent=tr('Simpanan dipadam','Save deleted');};
+ $('stOk').onclick=closeModal;
+}
+$('bSet').onclick=openSettings;
+$('bStart').onclick=()=>{
+ const names=[...document.querySelectorAll('#names input')].slice(0,menuCount).map((e,i)=>(e.value.trim()||DEF_NAMES[i]).slice(0,12));
+ G.players=names.map((n,i)=>newPlayer(i,n));G.world=0;beginGame();
+};
+$('bCont').onclick=()=>{
+ const sv=loadSave();if(!sv)return;
+ G.fast=!!sv.fast;G.world=sv.world;
+ G.players=sv.players.map(d=>{const p=newPlayer(d.idx,d.name);Object.assign(p,{cash:d.cash,sav:d.sav,inv:d.inv,prot:d.prot,risk:d.risk,coins:d.coins||0,cnt:d.cnt||p.cnt,log:d.log||[],stomps:d.stomps||0});p.owned=new Set(d.owned||[]);return p;});
+ beginGame();
+};
+function beginGame(){$('menu').classList.add('hidden');mainFlow();}
+$('bDash').onclick=toggleDash;
+$('bPause').onclick=()=>{if(G.state==='play')pauseGame();};
+$('bHow2').onclick=()=>{if(G.state==='play')pauseGame();openHow();};
+
+/* ============================================================
+   MULA
+   ============================================================ */
+applyTouchSetting();
+applyLang();
+init3D();
+if(!ok3D){$('c').classList.add('hidden');$('c2').classList.remove('hidden');resize();$('menu').querySelector('.small').insertAdjacentHTML('beforebegin','<p class="small" style="color:#ffd23f">'+tr('Paparan 3D tidak dapat dimuatkan (semak sambungan internet). Permainan berjalan dalam paparan 2D ringkas.','3D view could not load (check your internet connection). The game runs in a simple 2D view.')+'</p>');}
+buildScene(0,false);
+if(loadSave())$('bCont').classList.remove('hidden');
+requestAnimationFrame(frame);
+window.__prq={G,get R(){return R},S,EVS,INS,WORLDS,TTS,tp:(x,y)=>{if(R){R.P.x=x;R.P.y=y==null?1:y;R.P.vy=0;}}};
+</script>
+</body>
+</html>
